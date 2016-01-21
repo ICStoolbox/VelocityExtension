@@ -1,0 +1,201 @@
+#include "velext.h"
+
+extern Info info;
+
+
+/* Solve 3*3 symmetric system A*r = b */
+static int sys33sym(double a[6],double b[3],double r[3]) {
+  double  ia[6],as[6],det,m;
+  int     i;
+
+  /* Multiply matrix by a constant coefficient for stability purpose (because of the scaling) */
+  m = fabs(a[0]);
+  for (i=1; i<6; i++) {
+    if ( fabs(a[i]) < m )
+      m = fabs(a[i]);
+  }
+  if ( m < V_EPSD )  return(0);
+	
+  m = 1.0 / m;	  
+  for (i=0; i<6; i++)
+    as[i] = a[i] * m;
+  
+  det = as[0]*(as[3]*as[5]-as[4]*as[4]) - as[1]*(as[1]*as[5]-as[2]*as[4]) \
+      + as[2]*(as[1]*as[4]-as[2]*as[3]);
+  if ( fabs(det) < V_EPSD )  return(0);
+	
+  det = 1.0/det;
+  ia[0] = (as[3]*as[5]-as[4]*as[4]); 
+  ia[1] = - (as[1]*as[5]-as[2]*as[4]);
+  ia[2] = (as[1]*as[4]-as[2]*as[3]);
+  ia[3] = (as[0]*as[5]-as[2]*as[2]);
+  ia[4] = -(as[0]*as[4]-as[2]*as[1]);
+  ia[5] = (as[0]*as[3]-as[1]*as[1]);  
+  
+  r[0] = ia[0]*b[0] + ia[1]*b[1] + ia[2]*b[2];
+  r[1] = ia[1]*b[0] + ia[3]*b[1] + ia[4]*b[2];
+  r[2] = ia[2]*b[0] + ia[4]*b[1] + ia[5]*b[2];
+  
+  r[0]*=(det*m);
+  r[1]*=(det*m);
+  r[2]*=(det*m);
+
+  return(1);
+}
+
+/* Solve 3*3 symmetric system A*r = b */
+static int sys22sym(double a[6],double b[3],double r[3]) {
+  double    du;
+
+  du = a[0]*a[2] - a[1]*a[1];
+  if ( fabs(du) <V_EPSA ) {
+    fprintf(stdout,"  ## Invalid matrix (%E). Exit\n",du);
+    return(0);
+  }
+  du  = 1.0 / du;
+  r[0] = (a[2]*b[0] - a[1]*b[1]) * du;
+  r[1] = (a[0]*b[1] - a[1]*b[0]) * du;
+
+  return(1);
+}
+
+
+
+
+
+/* Compute gradient of level set function at point ip in start, given as a P1 function
+   (table of size mesh->np+1) and stores it into n[3] */
+int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
+  pTetra   pt;
+  pPoint   p0,p1,p2,p3;
+  double   A[6],b[3],m[9],im[9],dd; 
+  int      list[LONMAX+1],np,np0,k,ilist;
+  char     ier;
+
+  memset(A,0.0,6*sizeof(double));
+  memset(b,0.0,3*sizeof(double));
+
+  pt  = &mesh->tetra[start];
+  np0 = pt->v[ip];
+  p0  = &mesh->point[np0];
+
+  ilist = boulep(mesh,start,ip,list);
+  assert(ilist);
+
+  for (k=1; k<=ilist; k++) {
+		np = list[k];
+    p1 = &mesh->point[np];
+
+    A[0] += (p1->c[0] - p0->c[0])*(p1->c[0] - p0->c[0]);
+    A[3] += (p1->c[1] - p0->c[1])*(p1->c[1] - p0->c[1]);
+    A[5] += (p1->c[2] - p0->c[2])*(p1->c[2] - p0->c[2]);
+    A[1] += (p1->c[0] - p0->c[0])*(p1->c[1] - p0->c[1]);
+    A[2] += (p1->c[0] - p0->c[0])*(p1->c[2] - p0->c[2]);
+    A[4] += (p1->c[1] - p0->c[1])*(p1->c[2] - p0->c[2]);
+
+    b[0] += (p1->c[0] - p0->c[0])*(sol->chi[np] - sol->chi[np0]);
+    b[1] += (p1->c[1] - p0->c[1])*(sol->chi[np] - sol->chi[np0]);
+    b[2] += (p1->c[2] - p0->c[2])*(sol->chi[np] - sol->chi[np0]);     
+  }
+  ier = sys33sym(A,b,n);
+
+  /* In case inversion failed, return Grad d as GRad d in starting element */
+  if ( !ier ) {
+    pt = &mesh->tetra[start];
+
+    p0 = &mesh->point[pt->v[0]];
+    p1 = &mesh->point[pt->v[1]];
+    p2 = &mesh->point[pt->v[2]];
+    p3 = &mesh->point[pt->v[3]];
+
+    m[0] = (p1->c[0] - p0->c[0]); m[1] = (p1->c[1] - p0->c[1]); m[2] = (p1->c[2] - p0->c[2]); 
+    m[3] = (p2->c[0] - p0->c[0]); m[4] = (p2->c[1] - p0->c[1]); m[5] = (p2->c[2] - p0->c[2]); 
+    m[6] = (p3->c[0] - p0->c[0]); m[7] = (p3->c[1] - p0->c[1]); m[8] = (p3->c[2] - p0->c[2]); 
+
+    b[0] = (sol->chi[pt->v[1]] - sol->chi[pt->v[0]]);
+    b[1] = (sol->chi[pt->v[2]] - sol->chi[pt->v[0]]);
+    b[2] = (sol->chi[pt->v[3]] - sol->chi[pt->v[0]]);
+
+    if( !invmat_3d(m,im) ) {
+      fprintf(stderr,"  ## Error: function gradLS: null element %d \n",start);
+      exit(0);
+    }
+    n[0] = im[0]*b[0] + im[1]*b[1] + im[2]*b[2];
+    n[1] = im[3]*b[0] + im[4]*b[1] + im[5]*b[2];
+    n[2] = im[6]*b[0] + im[7]*b[1] + im[8]*b[2];
+  }
+
+  dd = n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
+  if ( dd > V_EPSD ) {
+    dd = 1.0 / sqrt(dd);
+    n[0] *= dd;
+    n[1] *= dd;
+    n[2] *= dd;
+  }
+
+  return(1);
+}
+
+
+int gradLS_2d(pMesh mesh,pSol sol,int start,char ip,double *n) {
+  pTria    pt;
+  pPoint   p0,p1,p2;
+  double   A[3],b[2],m[4],im[4],dd; 
+  int      list[LONMAX+1],np,np0,k,ilist;
+  char     ier;
+
+  memset(A,0.0,3*sizeof(double));
+  memset(b,0.0,2*sizeof(double));
+
+  pt   = &mesh->tria[start];
+  np0  = pt->v[ip];
+  p0   = &mesh->point[np0];
+
+  ilist = boulep(mesh,start,ip,list);
+  assert(ilist);
+
+  for (k=1; k<=ilist; k++) {
+		np = list[k];
+    p1 = &mesh->point[np];
+
+    A[0] += (p1->c[0] - p0->c[0])*(p1->c[0] - p0->c[0]);
+    A[2] += (p1->c[1] - p0->c[1])*(p1->c[1] - p0->c[1]);
+    A[1] += (p1->c[0] - p0->c[0])*(p1->c[1] - p0->c[1]);
+
+    b[0] += (p1->c[0] - p0->c[0])*(sol->chi[np] - sol->chi[np0]);
+    b[1] += (p1->c[1] - p0->c[1])*(sol->chi[np] - sol->chi[np0]);
+  }
+  ier = sys22sym(A,b,n);
+
+  /* In case inversion failed, return Grad d as GRad d in starting element */
+  if ( !ier ) {
+    pt = &mesh->tria[start];
+
+    p0 = &mesh->point[pt->v[0]];
+    p1 = &mesh->point[pt->v[1]];
+    p2 = &mesh->point[pt->v[2]];
+
+    m[0] = (p1->c[0] - p0->c[0]); m[1] = (p1->c[1] - p0->c[1]);
+    m[2] = (p2->c[0] - p0->c[0]); m[3] = (p2->c[1] - p0->c[1]);
+
+    b[0] = (sol->chi[pt->v[1]] - sol->chi[pt->v[0]]);
+    b[1] = (sol->chi[pt->v[2]] - sol->chi[pt->v[0]]);
+
+    if( !invmat_2d(m,im) ) {
+      fprintf(stderr,"  ## Error: function gradLS: null element %d \n",start);
+      exit(0);
+    }
+    n[0] = im[0]*b[0] + im[1]*b[1];
+    n[1] = im[2]*b[0] + im[3]*b[1];
+  }
+
+  dd = n[0]*n[0] + n[1]*n[1];
+  if ( dd > V_EPSD ) {
+    dd = 1.0 / sqrt(dd);
+    n[0] *= dd;
+    n[1] *= dd;
+  }
+
+  return(1);
+}
+
