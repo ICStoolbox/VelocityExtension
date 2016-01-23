@@ -3,18 +3,19 @@
 
 /* compactify mesh structure */
 int pack_3d(VLst *vlst) {
-  pTetra    pei,pef;
-  pTria     pti,ptf;
+  pTetra    pe;
+  pTria     pt;
+  pEdge     pa;
   double    alpha;
-  int      *perm,i,k,nf;
+  int      *perm,i,k,nf,id;
 
   /* check if compression needed */
   nf = 0;
   for (k=1; k<=vlst->info.ne; k++) {
-    pei = &vlst->mesh.tetra[k];
-    if ( getMat(&vlst->sol,pei->ref,&alpha) ) {
+    pe = &vlst->mesh.tetra[k];
+    if ( getMat(&vlst->sol,pe->ref,&alpha) ) {
       nf++;
-      for (i=0; i<4; i++)  vlst->mesh.point[pei->v[i]].old = 1;
+      for (i=0; i<4; i++)  vlst->mesh.point[pe->v[i]].old = pe->v[i];
     }
   }
   if ( nf == vlst->info.ne )  return(-1);
@@ -28,59 +29,84 @@ int pack_3d(VLst *vlst) {
   perm = (int*)calloc(vlst->info.np+1,sizeof(int));
   assert(perm);
 
-  /* compress and realloc vertices */
-  vlst->info.npi = vlst->info.np;
+  /* compress and renum vertices */
   nf = 0;
   for (k=1; k<=vlst->info.np; k++) {
-    if ( vlst->mesh.point[k].old > 0 ) {
+    perm[k] = k;
+    id = vlst->mesh.point[k].old;
+    vlst->mesh.point[k].old = k;
+    if ( id > 0 ) {
       nf++;
-      if ( nf < k )
+      /* swap k and nf */
+      if ( nf < k ) {
+        memcpy(&vlst->mesh.point[0],&vlst->mesh.point[nf],sizeof(Point));
         memcpy(&vlst->mesh.point[nf],&vlst->mesh.point[k],sizeof(Point));
-      vlst->mesh.point[nf].old = k;
-      perm[k] = nf;
+        memcpy(&vlst->mesh.point[k],&vlst->mesh.point[0],sizeof(Point));
+        perm[k] = nf;
+      }
     }
   }
-  for (k=nf+1; k<=vlst->info.np; k++)  vlst->mesh.point[k].old = 0;
   vlst->info.np = nf;
 
-  /* compress and renum tetrahedra */
-  vlst->info.nei = vlst->info.ne;
+  /* renum edges */
   nf = 0;
-  for (k=1; k<=vlst->info.ne; k++) {
-    pei = &vlst->mesh.tetra[k];
-    if ( getMat(&vlst->sol,pei->ref,&alpha) ) {
+  for (k=1; k<=vlst->info.na; k++) {
+    pa = &vlst->mesh.edge[k];
+    if ( perm[pa->v[0]] <= vlst->info.np && perm[pa->v[1]] <= vlst->info.np ) {
       nf++;
       if ( nf < k )
-        memcpy(&vlst->mesh.tetra[nf],&vlst->mesh.tetra[k],sizeof(Tetra));
-      pef = &vlst->mesh.tetra[nf];
-      for (i=0; i<4; i++)  pef->v[i] = perm[pef->v[i]];
+        memcpy(&vlst->mesh.edge[nf],&vlst->mesh.edge[k],sizeof(Edge));
+      pa = &vlst->mesh.edge[nf];
+      pa->v[0] = perm[pa->v[0]];
+      pa->v[1] = perm[pa->v[1]];
     }
   }
-  vlst->info.ne = nf;
+  vlst->info.na = nf;
 
-  /* renum triangles */
-  vlst->info.nti = vlst->info.nt;
+  /* compress and renum triangles */
   nf = 0;
   for (k=1; k<=vlst->info.nt; k++) {
-    pti = &vlst->mesh.tria[k];
-    if ( perm[pti->v[0]] && perm[pti->v[1]] && perm[pti->v[2]] ) {
+    pt = &vlst->mesh.tria[k];
+    if ( getMat(&vlst->sol,pt->ref,&alpha) ) {
       nf++;
-      if ( nf < k )
+      if ( nf < k ) {
+        memcpy(&vlst->mesh.tria[0],&vlst->mesh.tria[nf],sizeof(Tria));
         memcpy(&vlst->mesh.tria[nf],&vlst->mesh.tria[k],sizeof(Tria));
-      ptf = &vlst->mesh.tria[nf];
-      ptf->v[0] = perm[ptf->v[0]];
-      ptf->v[1] = perm[ptf->v[1]];
-      ptf->v[2] = perm[ptf->v[2]];
+        memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[0],sizeof(Tria));
+      }
     }
+  }
+  for (k=1; k<=vlst->info.nt; k++) {
+    pt = &vlst->mesh.tria[k];
+    for (i=0; i<3; i++)  pt->v[i] = perm[pt->v[i]];
   }
   vlst->info.nt = nf;
 
+  /* compress and renum tetrahedra */
+  nf = 0;
+  for (k=1; k<=vlst->info.ne; k++) {
+    pe = &vlst->mesh.tetra[k];
+    if ( getMat(&vlst->sol,pe->ref,&alpha) ) {
+      nf++;
+      if ( nf < k ) {
+        memcpy(&vlst->mesh.tria[0],&vlst->mesh.tria[nf],sizeof(Tetra));
+        memcpy(&vlst->mesh.tria[nf],&vlst->mesh.tria[k],sizeof(Tetra));
+        memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[0],sizeof(Tetra));
+      }
+    }
+  }
+  for (k=1; k<=vlst->info.ne; k++) {
+    pe = &vlst->mesh.tetra[k];
+    for (i=0; i<4; i++)  pe->v[i] = perm[pe->v[i]];
+  }
+  vlst->info.ne = nf;
+
   /* compress solution (data) */
   if ( vlst->sol.u ) {
-		for (k=1; k<=vlst->info.np; k++) {
-			vlst->sol.u[3*(k-1)+0] = vlst->sol.u[3*(perm[k]-1)+0];
-			vlst->sol.u[3*(k-1)+1] = vlst->sol.u[3*(perm[k]-1)+1];
-			vlst->sol.u[3*(k-1)+2] = vlst->sol.u[3*(perm[k]-1)+2];
+		for (k=1; k<=vlst->info.npi; k++) {
+			vlst->sol.u[2*(perm[k]-1)+0] = vlst->sol.u[2*(k-1)+0];
+			vlst->sol.u[2*(perm[k]-1)+1] = vlst->sol.u[2*(k-1)+1];
+			vlst->sol.u[2*(perm[k]-1)+2] = vlst->sol.u[2*(k-1)+2];
 		}
   }
   free(perm);
@@ -103,6 +129,7 @@ int pack_2d(VLst *vlst) {
   double    alpha;
   int      *perm,i,k,nf,id;
 
+  /* check if compression needed */
   nf = 0;
   for (k=1; k<=vlst->info.nt; k++) {
     pt = &vlst->mesh.tria[k];
@@ -122,7 +149,7 @@ int pack_2d(VLst *vlst) {
   perm = (int*)calloc(vlst->info.np+1,sizeof(int));
   assert(perm);
 
-  /* compress and realloc vertices */
+  /* compress and renum vertices */
   nf = 0;
   for (k=1; k<=vlst->info.np; k++) {
     perm[k] = k;

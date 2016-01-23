@@ -1,0 +1,15 @@
+Dirichlet
+2
+1 vertex v 0 0
+5 vertex v 0 0
+
+Load
+1
+3 vertex n 0.02
+
+gravity
+0 -9.81e-1
+
+Lame
+1
+1 1. 1.
