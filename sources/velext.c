@@ -43,7 +43,7 @@ static void excfun(int sigid) {
 
 
 static void usage(char *prog) {
-  fprintf(stdout,"usage: %s [+/-v | -h] [-a val] [-n nit] [-r res] data_mesh[.mesh] [-c chi[.sol]] [-p param_file[.velext]] [-s data_vel[.sol]]\n",prog);
+  fprintf(stdout,"usage: %s [+/-v | -h] [-a val] [-n nit] [-r res] data_mesh[.mesh] [-c chi[.sol]] [-p param_file[.velext]] [-s data_vel[.sol]] [-o output[.sol]]\n",prog);
   fprintf(stdout,"\nOptions and flags:\n\
   --help       show the syntax and exit.\n\
   --version    show the version and date of release and exit.\n\n\
