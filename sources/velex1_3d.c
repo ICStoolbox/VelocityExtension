@@ -252,14 +252,14 @@ int velex1_3d(VLst *vlst) {
   /* -- Part II: Laplace problem solver */
   if ( vlst->info.verb != '0' ) {
     fprintf(stdout,"    Solving linear system:");  fflush(stdout);
-    ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.err,&vlst->sol.nit,1);
+    ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.res,&vlst->sol.nit,1);
     if ( ier <= 0 )
       fprintf(stdout,"\n # convergence problem: %d\n",ier);
     else
-      fprintf(stdout," %E in %d iterations\n",vlst->sol.err,vlst->sol.nit);
+      fprintf(stdout," %E in %d iterations\n",vlst->sol.res,vlst->sol.nit);
 	}
   else {
-    ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.err,&vlst->sol.nit,1);
+    ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.res,&vlst->sol.nit,1);
   }
 
   /* free memory */

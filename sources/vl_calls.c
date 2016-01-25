@@ -13,14 +13,13 @@ VLst *VL_init(int dim,int ver,char typ,char mfree) {
   memset(&vlst->sol,0,sizeof(Sol));
   vlst->sol.cl    = (Cl*)calloc(VL_CL,sizeof(Cl));
   vlst->sol.mat   = (Mat*)calloc(VL_MAT,sizeof(Mat));
-  vlst->sol.err   = VL_RES;
+  vlst->sol.res   = VL_RES;
   vlst->sol.nit   = VL_MAXIT;
-  vlst->sol.cltyp = VL_ver;  /* For the time being...*/
 
   /* global parameters */
   vlst->info.dim    = dim;
   vlst->info.ver    = ver;
-  vlst->info.verb   = '+';
+  vlst->info.verb   = '1';
   vlst->info.zip    = 0;
   vlst->info.ls     = 0;
   vlst->info.mfree  = mfree;
@@ -40,8 +39,6 @@ int VL_stop(VLst *vlst) {
   free(vlst->sol.u);
 	free(vlst->sol.cl);
 	free(vlst->sol.mat);
-  if ( vlst->sol.namein )  free(vlst->sol.namein);
-	if ( vlst->sol.nameout ) free(vlst->sol.nameout);
 
   chrono(OFF,&vlst->info.ctim[0]);
   if ( vlst->info.verb != '0' ) {
@@ -63,7 +60,6 @@ int VL_velext(VLst *vlst) {
   if ( ier < 1 )  return(ier);
 
 //if ( !sctove(&mesh,&sol))   return(1);
-
 
 	return(ier);	
 }

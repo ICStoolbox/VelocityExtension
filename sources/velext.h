@@ -37,7 +37,7 @@
 /* data structures */
 typedef struct {
   double    c[3];
-  int       s,ref,old,mark;
+  int       s,ref,new,mark;
 } Point;
 typedef Point * pPoint;
 
@@ -98,9 +98,9 @@ typedef struct {
 typedef Mat * pMat;
 
 typedef struct {
-  double   *u,*chi,alpha,err,res;
+  double   *u,*chi,alpha,res;
   int       nbcl,nmat,nit;
-  char     *namein,*nameout,cltyp;
+  char     *namein,*nameout,*namepar,*namechi,cltyp;
   Cl       *cl;
   Mat      *mat;
 } Sol;
