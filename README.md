@@ -53,9 +53,30 @@ The options and flags are:
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
     cd demos/2d
-    velext carre.mesh         # or equivalently:  velext carre.mesh -p carre.velext -o carre.sol
+    velext disk.mesh -o disk.new.sol        # or equivalently:  velext disk.mesh -p disk.velext -o disk.new.sol
 
 that will produce an output that will look like:
+
+     - VELEXT, Release 2.0a, Jan 19, 2016
+       (C) Copyright 2014- , ICS-SU
+
+     - LOADING DATA
+        disk.mesh: 1758 vertices, 253 edges, 3301 triangles
+        disk.velext: 2 parameters
+        Compressing mesh: 908 vertices, 1664 edges, 1664 triangles
+     - COMPLETED: 0.006s
+
+     ** MODULE VELEXT: 2.0a
+        Matrix and right-hand side assembly
+        Solving linear system: 6.553947E-07 in 28 iterations
+     ** COMPLETED: 0.018s
+
+     - WRITING DATA
+        Uncompressing data: 1758 data vectors
+        disk.new.sol: 1758 data vectors
+     - COMPLETED: 0.002s
+
+     ** Cumulative time: 0.026s.
 
 #### Authors & contributors
 * velext has been initiated by Charles Dapogny (Université Joseph Fourier) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Dena Kazerani (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
