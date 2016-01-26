@@ -7,7 +7,7 @@ velext is a program to solve a simplified version of Helmholtz equation ```-h(x)
 
 1. download the zip archive of VelocityExtension or clone this repository:
 
-   ` git clone https://github.com/ICStoolbox/LVelocityExtension.git `
+   ` git clone https://github.com/ICStoolbox/VelocityExtension.git `
 
    navigate to the downloaded directory: 
 
