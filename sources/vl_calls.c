@@ -15,6 +15,8 @@ VLst *VL_init(int dim,int ver,char typ,char mfree) {
   vlst->sol.mat   = (Mat*)calloc(VL_MAT,sizeof(Mat));
   vlst->sol.res   = VL_RES;
   vlst->sol.nit   = VL_MAXIT;
+  vlst->sol.nbcl = 0;
+  vlst->sol.nmat = 0;
 
   /* global parameters */
   vlst->info.dim    = dim;
@@ -51,7 +53,14 @@ int VL_stop(VLst *vlst) {
 
 
 int VL_velext(VLst *vlst) {
-  int   ier;
+  Cl   *pcl;
+  int   i,ier;
+
+  for (i=0; i<vlst->sol.nbcl; i++) {
+    pcl = &vlst->sol.cl[i];
+		vlst->sol.cltyp |= pcl->typ;
+    vlst->sol.clelt |= pcl->elt;
+  }
 
   if ( vlst->info.dim == 2)
 		ier = velex1_2d(vlst);

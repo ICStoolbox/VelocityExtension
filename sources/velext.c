@@ -311,13 +311,6 @@ static int parsop(VLst *vlst) {
     }
   }
   fclose(in);
-
-  /* identify type of BC */
-  for (i=0; i<vlst->sol.nbcl; i++) {
-    pcl = &vlst->sol.cl[i];
-    vlst->sol.cltyp |= pcl->elt;
-  }
-
   if ( (npar > 0) && (vlst->info.verb != '0') )  fprintf(stdout," %d parameters\n",npar);
 
   return(1);
@@ -402,18 +395,18 @@ int main(int argc,char *argv[]) {
   /* packing mesh if needed */
   if ( vlst.sol.nmat ) {
     ier = vlst.info.dim == 2 ? pack_2d(&vlst) : pack_3d(&vlst);
-		if ( ier == 0 ) {
-			if ( vlst.info.verb != '0' )  fprintf(stdout," # Packing error.\n");
-		  return(1);
-		}
-	}
+    if ( ier == 0 ) {
+      if ( vlst.info.verb != '0' )  fprintf(stdout," # Packing error.\n");
+      return(1);
+    }
+  }
   
   /* build adjacency table */
   if ( vlst.info.ls )
     vlst.info.dim == 2 ? hashel_2d(&vlst) : hashel_3d(&vlst);
 
-	chrono(OFF,&vlst.info.ctim[1]);
-	printim(vlst.info.ctim[1].gdif,stim);
+  chrono(OFF,&vlst.info.ctim[1]);
+  printim(vlst.info.ctim[1].gdif,stim);
   if ( vlst.info.verb != '0' )  fprintf(stdout," - COMPLETED: %s\n",stim);
 
   /* solve */
@@ -422,7 +415,7 @@ int main(int argc,char *argv[]) {
     fprintf(stdout,"\n ** MODULE VELEXT: %s\n",VL_VER);
 
   ier = VL_velext(&vlst);
-	if ( !ier )  return(1);
+  if ( !ier )  return(1);
 
   chrono(OFF,&vlst.info.ctim[2]);
   if ( vlst.info.verb != '0' ) {
@@ -457,7 +450,7 @@ int main(int argc,char *argv[]) {
 
   chrono(OFF,&vlst.info.ctim[0]);
   if ( vlst.info.verb != '0' ) {
-	  printim(vlst.info.ctim[0].gdif,stim);
+    printim(vlst.info.ctim[0].gdif,stim);
     fprintf(stdout,"\n ** Cumulative time: %s.\n",stim);
   }
 

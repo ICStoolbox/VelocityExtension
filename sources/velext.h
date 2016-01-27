@@ -100,7 +100,7 @@ typedef Mat * pMat;
 typedef struct {
   double   *u,*chi,alpha,res;
   int       nbcl,nmat,nit;
-  char     *namein,*nameout,*namepar,*namechi,cltyp;
+  char     *namein,*nameout,*namepar,*namechi,cltyp,clelt;
   Cl       *cl;
   Mat      *mat;
 } Sol;

@@ -37,14 +37,7 @@ int getMat(pSol sol,int ref,double *alpha) {
 
 /* triangle area */
 static inline double area_2d(double *a,double *b,double *c) {
-  double    ux,uy,vx,vy,dd;
-
-  ux = b[0] - a[0];
-  uy = b[1] - a[1];
-  vx = c[0] - a[0];
-  vy = c[1] - a[1];
-  dd = 0.5 * (ux*vy - uy*vx);
-  return(dd);
+  return(0.5 * ((b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])));
 }
 
 
@@ -52,7 +45,7 @@ int invmat_2d(double m[4],double mi[4]) {
   double   det;
 
   det = m[0]*m[3] - m[2]*m[1];
-  if ( fabs(det) < VL_EPSD )  return(0);
+  if ( fabs(det) < VL_EPSA )  return(0);
   det = 1.0 / det;
 	mi[0] =  m[3]*det;
 	mi[1] = -m[1]*det;
@@ -71,7 +64,7 @@ static int setTGV_2d(VLst *vlst,pCsr A) {
   int      k;
 
   /* Set Dirichlet's boundary for the state system */
-  if ( vlst->sol.cltyp & VL_ver ) {
+  if ( vlst->sol.clelt & VL_ver ) {
     for (k=1; k<=vlst->info.np; k++) {
       ppt = &vlst->mesh.point[k];
       pcl = getCl(&vlst->sol,ppt->ref,VL_ver);
@@ -86,7 +79,7 @@ static int setTGV_2d(VLst *vlst,pCsr A) {
 			}
     }
   }
-	else if ( vlst->sol.cltyp & VL_edg )	{
+	else if ( vlst->sol.clelt & VL_edg )	{
     for (k=1; k<=vlst->info.na; k++) {
       pa = &vlst->mesh.edge[k];
 			pcl = getCl(&vlst->sol,pa->ref,VL_edg);
@@ -208,7 +201,7 @@ static pCsr matA2_2d(VLst *vlst) {
     
     m[0] = p1->c[0]-p0->c[0];  m[1] = p1->c[1]-p0->c[1];
     m[2] = p2->c[0]-p0->c[0];  m[3] = p2->c[1]-p0->c[1];
-  
+
     /* volume of element k */
     vol = area_2d(p0->c,p1->c,p2->c);
     cof = 1.0 / (4.0*vol);
@@ -261,11 +254,12 @@ static pCsr matA2_2d(VLst *vlst) {
 /* build right hand side vector and set boundary conds. */
 static double *rhsF_2d(VLst *vlst) {
   pPoint   ppt;
+  pEdge    pa;
   pCl      pcl;
-  double  *F,*vp;
+  double  *F,*vp,w[2];
   int      k,ig,nc;
 
-  if ( vlst->info.verb == '+' )  fprintf(stdout,"     body forces: ");
+  if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
   if ( vlst->info.ls )
     F = (double*)calloc(vlst->info.np,sizeof(double));
   else
@@ -273,7 +267,7 @@ static double *rhsF_2d(VLst *vlst) {
   assert(F);
 
   /* nodal boundary conditions */
-  if ( vlst->sol.cltyp & VL_ver ) {
+  if ( vlst->sol.clelt & VL_ver ) {
     nc = 0;
 	  for (k=1; k<=vlst->info.np; k++) {
 	    ppt = &vlst->mesh.point[k];
@@ -292,8 +286,37 @@ static double *rhsF_2d(VLst *vlst) {
       }
       nc++;
 		}
-    if ( vlst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d nodal values\n",nc);
+    if ( vlst->info.verb == '+' )  fprintf(stdout,"%d nodal values\n",nc);
 	}
+
+  /* external load along boundary edges */
+  if ( vlst->sol.clelt & VL_edg ) {
+    nc = 0;
+    for (k=1; k<=vlst->info.na; k++) {
+      pa  = &vlst->mesh.edge[k];
+      pcl = getCl(&vlst->sol,pa->ref,VL_edg);
+      if ( !pcl )  continue;
+      else if ( pcl->typ == Dirichlet ) {
+        if (vlst->info.ls ) {
+          vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
+          w[0] = VL_TGV * vp[0];
+          F[pa->v[0]-1] = w[0];
+          F[pa->v[1]-1] = w[0];
+        }
+        else {
+          vp = pcl->att == 'f' ? &vlst->sol.u[2*(k-1)] : &pcl->u[0];
+          w[0] = VL_TGV * vp[0];
+          w[1] = VL_TGV * vp[1];
+          F[2*(pa->v[0]-1)+0] = w[0];
+          F[2*(pa->v[0]-1)+1] = w[1];
+          F[2*(pa->v[1]-1)+0] = w[0];
+          F[2*(pa->v[1]-1)+1] = w[1];
+        }
+        nc++;
+      }
+    }
+    if ( vlst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d load values\n",nc);
+  }
 
 	return(F);
 }
@@ -302,13 +325,19 @@ static double *rhsF_2d(VLst *vlst) {
 /* solve Helmholz */
 int velex1_2d(VLst *vlst) {
   pCsr     A;
-  double  *F,err;
-  int      nit,ier;
+  double  *F;
+  int      ier;
   char     stim[32];
 
   /* -- Part I: matrix assembly */
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");
 	
+  /* allocating memory (for dylib) */
+  if ( !vlst->sol.u ) {
+    vlst->sol.u  = (double*)calloc(vlst->info.dim*vlst->info.np,sizeof(double));
+    assert(vlst->sol.u);
+  }
+
   /* build matrix */
   A = vlst->info.ls ? matA1_2d(vlst) : matA2_2d(vlst);
   F = rhsF_2d(vlst);
