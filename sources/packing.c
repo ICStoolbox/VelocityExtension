@@ -30,7 +30,7 @@ int pack_3d(VLst *vlst) {
   /* compress and renum vertices */
   nf = vlst->info.ne;
   k  = 0;
-  while ( ++k < nf ) {
+  while ( ++k <= nf ) {
     if ( vlst->mesh.point[k].new == 0 ) {
       while ( (vlst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -55,7 +55,7 @@ int pack_3d(VLst *vlst) {
   /* compress and renum tetrahedra */
   nf = vlst->info.ne;
   k  = 0;
-  while ( ++k < nf ) {
+  while ( ++k <= nf ) {
     pe = &vlst->mesh.tetra[k];
     if ( !getMat(&vlst->sol,pe->ref,&alpha) ) {
       while ( !getMat(&vlst->sol,vlst->mesh.tetra[nf].ref,&alpha) && (k < nf) )  nf --;
@@ -122,7 +122,7 @@ int pack_2d(VLst *vlst) {
   /* compress and renum vertices */
   nf = vlst->info.np;
   k  = 0;
-  while ( ++k < nf ) {
+  while ( ++k <= nf ) {
     if ( vlst->mesh.point[k].new == 0 ) {
       while ( (vlst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -147,7 +147,7 @@ int pack_2d(VLst *vlst) {
   /* compress and renum triangles */
   nf = vlst->info.nt;
   k  = 0;
-  while ( ++k < nf ) {
+  while ( ++k <= nf ) {
     pt = &vlst->mesh.tria[k];
     if ( !getMat(&vlst->sol,pt->ref,&alpha) ) {
       while ( !getMat(&vlst->sol,vlst->mesh.tria[nf].ref,&alpha) && (k < nf) )  nf --;
