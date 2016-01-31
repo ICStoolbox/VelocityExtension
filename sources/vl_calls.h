@@ -1,7 +1,7 @@
 #ifndef __VE_CALLS_H
 #define __VE_CALLS_H
 
-enum {Dirichlet=1, Neumann, Load};
+enum {Dirichlet=1, Neumann=2, Gravity=4};
 enum {VL_ver=1,VL_edg=2,VL_tri=4,VL_tet=8};
 
 

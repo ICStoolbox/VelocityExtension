@@ -80,7 +80,7 @@ static int setTGV_3d(VLst *vlst,pCsr A) {
 	char     i;
 
   /* Set Dirichlet's boundary for the state system */
-  if ( vlst->sol.cltyp & VL_ver ) {
+  if ( vlst->sol.clelt & VL_ver ) {
     /* at mesh nodes */
     for (k=1; k<=vlst->info.np; k++) {
       ppt = &vlst->mesh.point[k];
@@ -190,11 +190,11 @@ static pCsr matA2_3d(VLst *vlst) {
 
 /* build right hand side vector and set boundary conds. */
 static double *rhsF_3d(VLst *vlst) {
-	pTria    pt;
+	pTetra   pt;
   pPoint   ppt;
   pCl      pcl;
-  double  *F,*vp,*a,*b,*c;
-  int      k,il;
+  double  *F,*vp,*a,*b,*c,*d,vol;
+  int      k,il,nc;
   char     i;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     body forces\n");
@@ -204,8 +204,36 @@ static double *rhsF_3d(VLst *vlst) {
     F = (double*)calloc(3*vlst->info.np,sizeof(double));
   assert(F);
 
+  /* gravity as external force */
+  if ( vlst->sol.cltyp & Gravity ) {
+    nc = 0;
+    for (k=1; k<=vlst->info.ne; k++) {
+      pt = &vlst->mesh.tetra[k];
+
+      /* measure of K */
+      a = &vlst->mesh.point[pt->v[0]].c[0]; 
+      b = &vlst->mesh.point[pt->v[1]].c[0]; 
+      c = &vlst->mesh.point[pt->v[2]].c[0];
+      d = &vlst->mesh.point[pt->v[3]].c[0];
+      vol = volume(a,b,c,d) / 4.0;
+      if ( vlst->info.ls ) {
+        for (i=0; i<4; i++)
+          F[pt->v[i]-1] += vol * vlst->sol.gr[0];
+      }
+      else {
+        for (i=0; i<4; i++) {
+          F[3*(pt->v[i]-1)+0] += vol * vlst->sol.gr[0];
+          F[3*(pt->v[i]-1)+1] += vol * vlst->sol.gr[1];
+          F[3*(pt->v[i]-1)+2] += vol * vlst->sol.gr[2];
+        }
+      }
+      nc++;
+    }
+    if ( vlst->info.verb == '+' )  fprintf(stdout,"     %d gravity values assigned\n",nc);
+  }
+
   /* nodal boundary conditions for interface */
-  if ( vlst->sol.cltyp & VL_ver ) {
+  if ( vlst->sol.clelt & VL_ver ) {
 	  for (k=1; k<=vlst->info.np; k++) {
 	    ppt = &vlst->mesh.point[k];
       if ( !ppt->ref )  continue;

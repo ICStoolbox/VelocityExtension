@@ -273,7 +273,7 @@ static int parsop(VLst *vlst) {
       npar++;
       for (i=vlst->sol.nbcl; i<vlst->sol.nbcl+ncld; i++) {
         pcl = &vlst->sol.cl[i];
-        pcl->typ = Load;
+        pcl->typ = Neumann;
         fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
         
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
@@ -299,6 +299,13 @@ static int parsop(VLst *vlst) {
       }
       vlst->sol.nbcl += ncld;
     }
+    /* gravity or body force */
+    else if ( !strcmp(data,"gravity") ) {
+			npar++;
+      vlst->sol.cltyp |= Gravity;
+      for (j=0; j<vlst->info.dim; j++)
+        fscanf(in,"%lf",&vlst->sol.gr[j]);
+    }    
     else if ( !strcmp(data,"domain") ) {
       npar++;
       fscanf(in,"%d",&ncld);

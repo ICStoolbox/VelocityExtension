@@ -205,7 +205,7 @@ static pCsr matA2_2d(VLst *vlst) {
     /* volume of element k */
     vol = area_2d(p0->c,p1->c,p2->c);
     cof = 1.0 / (4.0*vol);
-      
+
     Gr[0][0] = cof*(m[2]-m[0])*(m[2]-m[0])+ cof*(m[3]-m[1])*(m[3]-m[1]);
     Gr[1][1] = cof*(m[2]*m[2]+m[3]*m[3]);
     Gr[2][2] = cof*(m[0]*m[0]+m[1]*m[1]);
@@ -255,9 +255,10 @@ static pCsr matA2_2d(VLst *vlst) {
 static double *rhsF_2d(VLst *vlst) {
   pPoint   ppt;
   pEdge    pa;
+  pTria    pt;
   pCl      pcl;
-  double  *F,*vp,w[2];
-  int      k,ig,nc;
+  double  *F,*vp,w[2],*a,*b,*c,area;
+  int      i,k,ig,nc;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
   if ( vlst->info.ls )
@@ -265,6 +266,32 @@ static double *rhsF_2d(VLst *vlst) {
   else
     F = (double*)calloc(2*vlst->info.np,sizeof(double));
   assert(F);
+
+  /* gravity as external force */
+  if ( vlst->sol.cltyp & Gravity ) {
+    nc = 0;
+    for (k=1; k<=vlst->info.nt; k++) {
+      pt = &vlst->mesh.tria[k];
+
+      /* measure of K */
+      a = &vlst->mesh.point[pt->v[0]].c[0]; 
+      b = &vlst->mesh.point[pt->v[1]].c[0]; 
+      c = &vlst->mesh.point[pt->v[2]].c[0]; 
+      area = area_2d(a,b,c) / 3.0;
+      if ( vlst->info.ls ) {
+        for (i=0; i<3; i++)
+          F[pt->v[i]-1] += area * vlst->sol.gr[0];
+      }
+      else {
+        for (i=0; i<3; i++) {
+          F[2*(pt->v[i]-1)+0] += area * vlst->sol.gr[0];
+          F[2*(pt->v[i]-1)+1] += area * vlst->sol.gr[1];
+        }
+      }
+      nc++;
+    }
+    if ( vlst->info.verb == '+' )  fprintf(stdout,"     %d gravity values assigned\n",nc);
+  }
 
   /* nodal boundary conditions */
   if ( vlst->sol.clelt & VL_ver ) {

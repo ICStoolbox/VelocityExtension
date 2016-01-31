@@ -80,7 +80,7 @@ int VL_setBC(VLst *vlst,int typ,int ref,char att,int elt,double *u) {
       return(0);
     }
   }
-  else if ( pcl->typ == Load ) {
+  else if ( pcl->typ == Neumann ) {
     if ( !strchr("fnv",pcl->att) ) {
       if ( vlst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: %c\n",pcl->att);
       return(0);
