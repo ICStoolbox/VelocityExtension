@@ -97,7 +97,7 @@ int pack_3d(VLst *vlst) {
 /* mesh renumbering and packing */
 int pack_2d(VLst *vlst) {
   pTria     pt;
-  pEdge     pa;
+  pEdge     pa,pb;
   double    alpha,w[2];
   int       i,k,nf,id;
 
@@ -162,8 +162,23 @@ int pack_2d(VLst *vlst) {
   /* simply renum edges */
   for (k=1; k<=vlst->info.na; k++) {
     pa = &vlst->mesh.edge[k];
-    pa->v[0] = vlst->mesh.point[pa->v[0]].new;
-    pa->v[1] = vlst->mesh.point[pa->v[1]].new;
+    for (i=0; i<3; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
+  }
+  nf = vlst->info.na;
+  k  = 0;
+  while ( ++k <= nf ) {
+    pa = &vlst->mesh.edge[k];
+    if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0) || 
+         (pa->v[1] > vlst->info.np || pa->v[1] == 0) ) {
+      pb = &vlst->mesh.edge[nf];
+      while ( ((pb->v[0] > vlst->info.np || pb->v[0] == 0) || 
+               (pb->v[1] > vlst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+        nf--;
+        pb = &vlst->mesh.edge[nf];
+      }
+      memcpy(&vlst->mesh.edge[k],&vlst->mesh.edge[nf],sizeof(Edge));
+      nf--;
+    }
   }
   vlst->info.na = nf;
 
