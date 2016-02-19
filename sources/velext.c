@@ -56,7 +56,7 @@ static void usage(char *prog) {
   chi.sol        characteristic function (scalar)\n\
   param.velext   name of file containing elasticity parameters\n\
   data.sol       name of file containing the initial solution or boundary conditions\n\
-  output.sol     name of the output file (displacement field)\n");
+  output.sol     name of the output file (velocity field)\n");
   exit(1);
 }
 
