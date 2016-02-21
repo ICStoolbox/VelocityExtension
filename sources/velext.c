@@ -112,7 +112,7 @@ static int parsar(int argc,char *argv[],VLst *vlst) {
           fprintf(stdout,"%s: missing input file\n", argv[0]);
           usage(argv[0]);
         }
-      break;
+        break;
       case 'n':
         if ( ++i < argc && isdigit(argv[i][0]) )
           vlst->sol.nit = atoi(argv[i]);

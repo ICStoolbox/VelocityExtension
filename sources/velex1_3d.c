@@ -191,13 +191,14 @@ static pCsr matA2_3d(VLst *vlst) {
 /* build right hand side vector and set boundary conds. */
 static double *rhsF_3d(VLst *vlst) {
 	pTetra   pt;
+  pTria    ptt;
   pPoint   ppt;
   pCl      pcl;
-  double  *F,*vp,*a,*b,*c,*d,vol;
+  double  *F,*vp,w[3],*a,*b,*c,*d,vol;
   int      k,il,nc;
   char     i;
 
-  if ( vlst->info.verb == '+' )  fprintf(stdout,"     body forces\n");
+  if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
   if ( vlst->info.ls )
     F = (double*)calloc(vlst->info.np,sizeof(double));
   else
@@ -251,6 +252,38 @@ static double *rhsF_3d(VLst *vlst) {
 	    }
 		}
 	}
+
+  /* external load along boundary triangles */
+  if ( vlst->sol.clelt & VL_tri ) {
+    nc = 0;
+    for (k=1; k<=vlst->info.nt; k++) {
+      ptt = &vlst->mesh.tria[k];
+      pcl = getCl(&vlst->sol,ptt->ref,VL_tri);
+      if ( !pcl )  continue;
+      else if ( pcl->typ == Dirichlet ) {
+        if ( vlst->info.ls ) {
+          vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
+          w[0] = VL_TGV * vp[0];
+          F[ptt->v[0]-1] = w[0];
+          F[ptt->v[1]-1] = w[0];
+          F[ptt->v[2]-1] = w[0];
+        }
+        else {
+          vp = pcl->att == 'f' ? &vlst->sol.u[3*(k-1)] : &pcl->u[0];
+          w[0] = VL_TGV * vp[0];
+          w[1] = VL_TGV * vp[1];
+          w[2] = VL_TGV * vp[2];
+          for (i=0; i<3; i++) {
+            F[2*(ptt->v[i]-1)+0] = w[0];
+            F[2*(ptt->v[i]-1)+1] = w[1];
+            F[2*(ptt->v[i]-1)+2] = w[2];
+          }
+        }
+        nc++;
+      }
+    }
+    if ( vlst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d load values\n",nc);
+  }
 
   return(F);
 }

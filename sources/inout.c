@@ -203,8 +203,8 @@ int loadChi(VLst *vlst) {
   int          k,inm,np,ver,dim,type,size,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
-	if ( !vlst->sol.namein )  return(-1);
-  strcpy(data,vlst->sol.namein);
+	if ( !vlst->sol.namechi )  return(-1);
+  strcpy(data,vlst->sol.namechi);
 
   /* remove .mesh extension */
   ptr = strstr(data,".mesh");
