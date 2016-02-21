@@ -235,6 +235,7 @@ static double *rhsF_3d(VLst *vlst) {
 
   /* nodal boundary conditions for interface */
   if ( vlst->sol.clelt & VL_ver ) {
+    nc = 0;
 	  for (k=1; k<=vlst->info.np; k++) {
 	    ppt = &vlst->mesh.point[k];
       if ( !ppt->ref )  continue;
@@ -250,7 +251,9 @@ static double *rhsF_3d(VLst *vlst) {
         F[3*(k-1)+1] = VL_TGV * vp[1];
         F[3*(k-1)+2] = VL_TGV * vp[2];
 	    }
+      nc++;
 		}
+    if ( vlst->info.verb == '+' )  fprintf(stdout,"%d nodal values\n",nc);
 	}
 
   /* external load along boundary triangles */
