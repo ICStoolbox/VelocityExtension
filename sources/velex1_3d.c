@@ -195,7 +195,7 @@ static double *rhsF_3d(VLst *vlst) {
   pPoint   ppt;
   pCl      pcl;
   double  *F,*vp,w[3],*a,*b,*c,*d,vol;
-  int      k,il,nc;
+  int      k,il,nc1,nc2,nc3;
   char     i;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
@@ -205,9 +205,10 @@ static double *rhsF_3d(VLst *vlst) {
     F = (double*)calloc(3*vlst->info.np,sizeof(double));
   assert(F);
 
+  nc1 = nc2 = nc3 = 0;
+
   /* gravity as external force */
   if ( vlst->sol.cltyp & Gravity ) {
-    nc = 0;
     for (k=1; k<=vlst->info.ne; k++) {
       pt = &vlst->mesh.tetra[k];
 
@@ -228,14 +229,12 @@ static double *rhsF_3d(VLst *vlst) {
           F[3*(pt->v[i]-1)+2] += vol * vlst->sol.gr[2];
         }
       }
-      nc++;
+      nc1++;
     }
-    if ( vlst->info.verb == '+' )  fprintf(stdout,"     %d gravity values assigned\n",nc);
   }
 
   /* nodal boundary conditions for interface */
   if ( vlst->sol.clelt & VL_ver ) {
-    nc = 0;
 	  for (k=1; k<=vlst->info.np; k++) {
 	    ppt = &vlst->mesh.point[k];
       if ( !ppt->ref )  continue;
@@ -251,14 +250,12 @@ static double *rhsF_3d(VLst *vlst) {
         F[3*(k-1)+1] = VL_TGV * vp[1];
         F[3*(k-1)+2] = VL_TGV * vp[2];
 	    }
-      nc++;
+      nc2++;
 		}
-    if ( vlst->info.verb == '+' )  fprintf(stdout,"%d nodal values\n",nc);
 	}
 
   /* external load along boundary triangles */
   if ( vlst->sol.clelt & VL_tri ) {
-    nc = 0;
     for (k=1; k<=vlst->info.nt; k++) {
       ptt = &vlst->mesh.tria[k];
       pcl = getCl(&vlst->sol,ptt->ref,VL_tri);
@@ -282,10 +279,15 @@ static double *rhsF_3d(VLst *vlst) {
             F[2*(ptt->v[i]-1)+2] = w[2];
           }
         }
-        nc++;
+        nc3++;
       }
     }
-    if ( vlst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d load values\n",nc);
+  }
+  if ( vlst->info.verb == '+' ) {
+    if ( nc1 > 0 )  fprintf(stdout," %d gravity",nc1);
+    if ( nc2 > 0 )  fprintf(stdout," %d nodal",nc2);
+    if ( nc3 > 0 )  fprintf(stdout," %d load",nc3);
+    fprintf(stdout,"\n");
   }
 
   return(F);
