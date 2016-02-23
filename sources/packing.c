@@ -5,12 +5,12 @@
 int pack_3d(VLst *vlst) {
   pTetra    pe;
   pTria     pt;
-  pEdge     pa;
+  pEdge     pa,pb;
   double    alpha,w[3];
   int       i,k,nf,id;
 
   /* check if compression needed */
-  nf = 0;
+  nf  = 0;
   for (k=1; k<=vlst->info.ne; k++) {
     pe = &vlst->mesh.tetra[k];
     if ( getMat(&vlst->sol,pe->ref,&alpha) ) {
@@ -28,7 +28,7 @@ int pack_3d(VLst *vlst) {
   vlst->info.zip = 1;
 
   /* compress and renum vertices */
-  nf = vlst->info.ne;
+  nf = vlst->info.np;
   k  = 0;
   while ( ++k <= nf ) {
     if ( vlst->mesh.point[k].new == 0 ) {
@@ -68,19 +68,42 @@ int pack_3d(VLst *vlst) {
   vlst->info.ne = nf;
 
   /* renum triangles */
-  for (k=1; k<=vlst->info.nt; k++) {
+  nf = vlst->info.nt;
+  k  = 0;
+  while ( ++k <= nf ) {
     pt = &vlst->mesh.tria[k];
-    pt->v[0] = vlst->mesh.point[pt->v[0]].new;
-    pt->v[1] = vlst->mesh.point[pt->v[1]].new;
-    pt->v[2] = vlst->mesh.point[pt->v[2]].new;
+    if ( !getMat(&vlst->sol,pt->ref,&alpha) ) {
+      while ( !getMat(&vlst->sol,vlst->mesh.tria[nf].ref,&alpha) && (k < nf) )  nf --;
+      /* put nf into k */
+      memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[nf],sizeof(Tria));
+      nf--;
+    }
+    for (i=0; i<4; i++)  pt->v[i] = vlst->mesh.point[pt->v[i]].new;
   }
+  vlst->info.nt = nf;
 
   /* renum edges */
   for (k=1; k<=vlst->info.na; k++) {
     pa = &vlst->mesh.edge[k];
-    pa->v[0] = vlst->mesh.point[pa->v[0]].new;
-    pa->v[1] = vlst->mesh.point[pa->v[1]].new;
+    for (i=0; i<3; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
   }
+  nf = vlst->info.na;
+  k  = 0;
+  while ( ++k <= nf ) {
+    pa = &vlst->mesh.edge[k];
+    if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0) ||
+         (pa->v[1] > vlst->info.np || pa->v[1] == 0) ) {
+      pb = &vlst->mesh.edge[nf];
+      while ( ((pb->v[0] > vlst->info.np || pb->v[0] == 0) ||
+               (pb->v[1] > vlst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+        nf--;
+        pb = &vlst->mesh.edge[nf];
+      }
+      memcpy(&vlst->mesh.edge[k],&vlst->mesh.edge[nf],sizeof(Edge));
+      nf--;
+    }
+  }
+  vlst->info.na = nf;
 
   if ( vlst->info.verb != '0' ) {
     fprintf(stdout,"%d vertices",vlst->info.np);
