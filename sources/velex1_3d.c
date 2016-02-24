@@ -99,6 +99,27 @@ static int setTGV_3d(VLst *vlst,pCsr A) {
       }
 		}
 	}
+	if ( vlst->sol.clelt & VL_tri )	{
+    for (k=1; k<=vlst->info.nt; k++) {
+      pt = &vlst->mesh.tria[k];
+			pcl = getCl(&vlst->sol,pt->ref,VL_tri);
+      if ( pcl && pcl->typ == Dirichlet ) {
+        /* set value for scalar or vector field */
+        if ( vlst->info.ls ) {
+          csrSet(A,pt->v[0]-1,pt->v[0]-1,VL_TGV);
+          csrSet(A,pt->v[1]-1,pt->v[1]-1,VL_TGV);
+          csrSet(A,pt->v[2]-1,pt->v[2]-1,VL_TGV);
+        }
+        else {
+          for (i=0; i<3; i++) {
+            csrSet(A,3*(pt->v[i]-1)+0,3*(pt->v[i]-1)+0,VL_TGV);
+            csrSet(A,3*(pt->v[i]-1)+1,3*(pt->v[i]-1)+1,VL_TGV);
+            csrSet(A,3*(pt->v[i]-1)+2,3*(pt->v[i]-1)+2,VL_TGV);
+          }
+        }
+      }
+		}
+  }
 
 	return(1);
 }
@@ -171,7 +192,6 @@ static pCsr matA1_3d(VLst *vlst) {
       }
     }
   }
-
   setTGV_3d(vlst,A);
 	csrPack(A);
 
@@ -183,7 +203,82 @@ static pCsr matA1_3d(VLst *vlst) {
 
 
 static pCsr matA2_3d(VLst *vlst) {
-  pCsr    A;
+  pCsr     A;
+  pTetra   pt;
+  pPoint   p0,p1,p2,p3;
+  double   Dp[4][3],m[9],im[9],Gr[4][3],alpha,vol,kij,term0,termG;
+  int      nr,nc,nbe,k,ip0,ip1,ip2,ip3,il,ic;
+  char     i,j;
+
+  /* memory allocation (rough estimate) */
+  nr  = nc = 3*vlst->info.np;
+  nbe = 20*vlst->info.np;
+  A   = csrNew(nr,nc,nbe,CS_UT+CS_SYM);
+
+  /* Dp */
+  Dp[0][0] = -1.0 ; Dp[1][0] = 1.0 ; Dp[2][0] = 0.0 ; Dp[3][0] = 0.0;
+  Dp[0][1] = -1.0 ; Dp[1][1] = 0.0 ; Dp[2][1] = 1.0 ; Dp[3][1] = 0.0; 
+  Dp[0][2] = -1.0 ; Dp[1][2] = 0.0 ; Dp[2][2] = 0.0 ; Dp[3][2] = 1.0;
+
+  /* Fill stiffness matrix of Laplace problem */
+  for (k=1; k<=vlst->info.ne; k++) {
+    pt = &vlst->mesh.tetra[k];
+    if ( !getMat(&vlst->sol,pt->ref,&alpha) )  continue;
+
+    p0 = &vlst->mesh.point[pt->v[0]];
+    p1 = &vlst->mesh.point[pt->v[1]];
+    p2 = &vlst->mesh.point[pt->v[2]];
+    p3 = &vlst->mesh.point[pt->v[3]];
+
+    m[0] = p1->c[0]-p0->c[0];  m[1] = p1->c[1]-p0->c[1];  m[2] = p1->c[2]-p0->c[2];
+    m[3] = p2->c[0]-p0->c[0];  m[4] = p2->c[1]-p0->c[1];  m[5] = p2->c[2]-p0->c[2];
+    m[6] = p3->c[0]-p0->c[0];  m[7] = p3->c[1]-p0->c[1];  m[8] = p3->c[2]-p0->c[2];
+    if ( !invmat_3d(m,im) )  return(0);
+
+    /* volume of element k */
+    vol = volume(p0->c,p1->c,p2->c,p3->c);
+
+    /* Gradients of shape functions : Gr[i] = im*Dp[i] */
+    for (i=0; i<4; i++) {
+      Gr[i][0] = im[0]*Dp[i][0] + im[1]*Dp[i][1] + im[2]*Dp[i][2];
+      Gr[i][1] = im[3]*Dp[i][0] + im[4]*Dp[i][1] + im[5]*Dp[i][2];
+      Gr[i][2] = im[6]*Dp[i][0] + im[7]*Dp[i][1] + im[8]*Dp[i][2];
+    }
+
+    /* Flow local stiffness matrix into global one */
+    for (i=0; i<4; i++) {
+      for (j=i; j<4; j++) {
+        if ( j==i )
+          term0 = vol / 10.0;  
+        else
+          term0 = vol / 20.0;
+
+        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1] + Gr[i][2]*Gr[j][2]);   
+        kij = term0 + alpha * termG;
+        il  = 3*(pt->v[i]-1);
+        ic  = 3*(pt->v[j]-1);
+        if ( i == j ) {
+          csrPut(A,il+0,ic+0,kij);
+          csrPut(A,il+1,ic+1,kij);
+          csrPut(A,il+2,ic+2,kij);
+        }
+        else {
+          csrPut(A,il+0,ic+0,kij);
+          csrPut(A,ic+0,il+0,kij);
+          csrPut(A,il+1,ic+1,kij);
+          csrPut(A,ic+1,il+1,kij);
+          csrPut(A,il+2,ic+2,kij);
+          csrPut(A,ic+2,il+2,kij);
+        }
+      }
+    }
+  }
+  setTGV_3d(vlst,A);
+  csrPack(A);
+
+  if ( vlst->info.verb == '+' )
+    fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
+
   return(A);
 }
 
@@ -194,7 +289,7 @@ static double *rhsF_3d(VLst *vlst) {
   pTria    ptt;
   pPoint   ppt;
   pCl      pcl;
-  double  *F,*vp,w[3],*a,*b,*c,*d,vol;
+  double  *F,*vp,*a,*b,*c,*d,vol;
   int      k,il,nc1,nc2,nc3;
   char     i;
 
@@ -245,7 +340,7 @@ static double *rhsF_3d(VLst *vlst) {
         F[k-1] = VL_TGV * vp[0];
       }
       else {
-        vp = pcl->att == 'f' ? &vlst->sol.u[2*(k-1)] : &pcl->u[0];
+        vp = pcl->att == 'f' ? &vlst->sol.u[3*(k-1)] : &pcl->u[0];
         F[3*(k-1)+0] = VL_TGV * vp[0];
         F[3*(k-1)+1] = VL_TGV * vp[1];
         F[3*(k-1)+2] = VL_TGV * vp[2];
@@ -263,20 +358,16 @@ static double *rhsF_3d(VLst *vlst) {
       else if ( pcl->typ == Dirichlet ) {
         if ( vlst->info.ls ) {
           vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
-          w[0] = VL_TGV * vp[0];
-          F[ptt->v[0]-1] = w[0];
-          F[ptt->v[1]-1] = w[0];
-          F[ptt->v[2]-1] = w[0];
+          F[ptt->v[0]-1] = VL_TGV * vp[0];
+          F[ptt->v[1]-1] = VL_TGV * vp[0];
+          F[ptt->v[2]-1] = VL_TGV * vp[0];
         }
         else {
           vp = pcl->att == 'f' ? &vlst->sol.u[3*(k-1)] : &pcl->u[0];
-          w[0] = VL_TGV * vp[0];
-          w[1] = VL_TGV * vp[1];
-          w[2] = VL_TGV * vp[2];
           for (i=0; i<3; i++) {
-            F[2*(ptt->v[i]-1)+0] = w[0];
-            F[2*(ptt->v[i]-1)+1] = w[1];
-            F[2*(ptt->v[i]-1)+2] = w[2];
+            F[3*(ptt->v[i]-1)+0] = VL_TGV * vp[0];
+            F[3*(ptt->v[i]-1)+1] = VL_TGV * vp[1];
+            F[3*(ptt->v[i]-1)+2] = VL_TGV * vp[2];
           }
         }
         nc3++;

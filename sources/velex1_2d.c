@@ -79,7 +79,7 @@ static int setTGV_2d(VLst *vlst,pCsr A) {
 			}
     }
   }
-	else if ( vlst->sol.clelt & VL_edg )	{
+	if ( vlst->sol.clelt & VL_edg )	{
     for (k=1; k<=vlst->info.na; k++) {
       pa = &vlst->mesh.edge[k];
 			pcl = getCl(&vlst->sol,pa->ref,VL_edg);
@@ -182,7 +182,7 @@ static pCsr matA2_2d(VLst *vlst) {
   pTria    pt;
   pPoint   p0,p1,p2;
   double   m[4],im[4],Gr[3][3],alpha,cof,vol,kij,term0,termG;
-  int      nr,nc,nbe,k,ni,nj,il,ic;
+  int      nr,nc,nbe,k,il,ic;
   char     i,j;
 
   /* memory allocation (rough estimate) */
@@ -224,17 +224,15 @@ static pCsr matA2_2d(VLst *vlst) {
         /* termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1]); */
         termG = Gr[i][j];
         kij = term0 + alpha * termG;
-        ni  = pt->v[i];
-        nj  = pt->v[j];
-        il  = 2*(ni-1);
-        ic  = 2*(nj-1);
+        il  = 2*(pt->v[i]-1);
+        ic  = 2*(pt->v[j]-1);
         if ( i == j ) {
-          csrPut(A,il,ic,kij);
+          csrPut(A,il+0,ic+0,kij);
           csrPut(A,il+1,ic+1,kij);
         }
         else {
-          csrPut(A,il,ic,kij);
-          csrPut(A,ic,il,kij);
+          csrPut(A,il+0,ic+0,kij);
+          csrPut(A,ic+0,il+0,kij);
           csrPut(A,il+1,ic+1,kij);
           csrPut(A,ic+1,il+1,kij);
         }
@@ -257,7 +255,7 @@ static double *rhsF_2d(VLst *vlst) {
   pEdge    pa;
   pTria    pt;
   pCl      pcl;
-  double  *F,*vp,w[2],*a,*b,*c,area;
+  double  *F,*vp,*a,*b,*c,area;
   int      i,k,ig,nc1,nc2,nc3;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
@@ -323,18 +321,15 @@ static double *rhsF_2d(VLst *vlst) {
       else if ( pcl->typ == Dirichlet ) {
         if (vlst->info.ls ) {
           vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
-          w[0] = VL_TGV * vp[0];
-          F[pa->v[0]-1] = w[0];
-          F[pa->v[1]-1] = w[0];
+          F[pa->v[0]-1] = VL_TGV * vp[0];
+          F[pa->v[1]-1] = VL_TGV * vp[0];
         }
         else {
           vp = pcl->att == 'f' ? &vlst->sol.u[2*(k-1)] : &pcl->u[0];
-          w[0] = VL_TGV * vp[0];
-          w[1] = VL_TGV * vp[1];
-          F[2*(pa->v[0]-1)+0] = w[0];
-          F[2*(pa->v[0]-1)+1] = w[1];
-          F[2*(pa->v[1]-1)+0] = w[0];
-          F[2*(pa->v[1]-1)+1] = w[1];
+          F[2*(pa->v[0]-1)+0] = VL_TGV * vp[0];
+          F[2*(pa->v[0]-1)+1] = VL_TGV * vp[1];
+          F[2*(pa->v[1]-1)+0] = VL_TGV * vp[0];
+          F[2*(pa->v[1]-1)+1] = VL_TGV * vp[1];
         }
         nc3++;
       }
