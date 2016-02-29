@@ -5,20 +5,20 @@
 int pack_3d(VLst *vlst) {
   pTetra    pe;
   pTria     pt;
-  pEdge     pa,pb;
+  pEdge     pa;
   double    alpha,w[3];
   int       i,k,nf,id;
 
   /* check if compression needed */
   nf  = 0;
-  for (k=1; k<=vlst->info.ne; k++) {
+  for (k=1; k<=vlst->info.nei; k++) {
     pe = &vlst->mesh.tetra[k];
     if ( getMat(&vlst->sol,pe->ref,&alpha) ) {
       nf++;
-      for (i=0; i<4; i++)  vlst->mesh.point[pe->v[i]].new = pe->v[i];
+      for (i=0; i<4; i++)  vlst->mesh.point[pe->v[i]].new = 1;
     }
   }
-  if ( nf == vlst->info.ne )  return(-1);
+  if ( nf == vlst->info.nei )  return(-1);
 
   /* store permutations */
   if ( vlst->info.verb != '0' ) {
@@ -28,9 +28,9 @@ int pack_3d(VLst *vlst) {
   vlst->info.zip = 1;
 
   /* compress and renum vertices */
-  nf = vlst->info.np;
-  k  = 0;
-  while ( ++k <= nf ) {
+  nf = vlst->info.npi;
+  k  = 1;
+  while ( k < nf ) {
     if ( vlst->mesh.point[k].new == 0 ) {
       while ( (vlst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -38,70 +38,100 @@ int pack_3d(VLst *vlst) {
         memcpy(&vlst->mesh.point[0],&vlst->mesh.point[nf],sizeof(Point));
         memcpy(&vlst->mesh.point[nf],&vlst->mesh.point[k],sizeof(Point));
         memcpy(&vlst->mesh.point[k],&vlst->mesh.point[0],sizeof(Point));
-        vlst->mesh.point[k].new  = nf;
-        vlst->mesh.point[nf].new = k;
-        
+        /* swap solution too */
         if ( vlst->sol.u ) {
           memcpy(&w,&vlst->sol.u[3*(nf-1)],3*sizeof(double));
           memcpy(&vlst->sol.u[3*(nf-1)],&vlst->sol.u[3*(k-1)],3*sizeof(double));
           memcpy(&vlst->sol.u[3*(k-1)],&w,3*sizeof(double));
         }
+        vlst->mesh.point[k].new  = nf;
+        vlst->mesh.point[nf].new = k;
       }
-      nf++;
+      nf--;
     }
+    k++;
   }
   vlst->info.np = nf;
 
   /* compress and renum tetrahedra */
-  nf = vlst->info.ne;
-  k  = 0;
-  while ( ++k <= nf ) {
+  for (k=1; k<=vlst->info.nei; k++) {
     pe = &vlst->mesh.tetra[k];
-    if ( !getMat(&vlst->sol,pe->ref,&alpha) ) {
-      while ( !getMat(&vlst->sol,vlst->mesh.tetra[nf].ref,&alpha) && (k < nf) )  nf --;
+    for (i=0; i<4; i++)  pe->v[i] = vlst->mesh.point[pe->v[i]].new;
+  }
+  nf = vlst->info.nei;
+  k  = 1;
+  while ( k < nf ) {
+    pe = &vlst->mesh.tetra[k];
+    for (i=0; i<4; i++)  
+      if ( pe->v[i] > vlst->info.np || pe->v[i] == 0 )  break;
+    if ( i < 4 ) {
+      do {
+        pe = &vlst->mesh.tetra[nf];
+        for (i=0; i<4; i++)
+          if ( pe->v[i] > vlst->info.np || pe->v[i] == 0 )  break;
+        if ( i == 4 )  break;
+        nf --;
+      }
+      while ( k < nf );
       /* put nf into k */
       memcpy(&vlst->mesh.tetra[k],&vlst->mesh.tetra[nf],sizeof(Tetra));
       nf--;
     }
-    for (i=0; i<4; i++)  pe->v[i] = vlst->mesh.point[pe->v[i]].new;
+    k++;
   }
   vlst->info.ne = nf;
 
   /* renum triangles */
-  nf = vlst->info.nt;
-  k  = 0;
-  while ( ++k <= nf ) {
+  for (k=1; k<=vlst->info.nti; k++) {
     pt = &vlst->mesh.tria[k];
-    if ( !getMat(&vlst->sol,pt->ref,&alpha) ) {
-      while ( !getMat(&vlst->sol,vlst->mesh.tria[nf].ref,&alpha) && (k < nf) )  nf --;
-      /* put nf into k */
+    for (i=0; i<3; i++)  pt->v[i] = vlst->mesh.point[pt->v[i]].new;
+  }
+  nf = vlst->info.nti;
+  k  = 1;
+  while ( k < nf ) {
+    pt = &vlst->mesh.tria[k];
+    for (i=0; i<3; i++)
+      if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
+    if ( i < 3 ) {
+      do {
+        pt = &vlst->mesh.tria[nf];
+        for (i=0; i<3; i++)
+          if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
+        if ( i == 3 )  break;
+        nf--;
+      }
+      while ( k < nf );
+      /* put nf in k */
       memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[nf],sizeof(Tria));
       nf--;
     }
-    for (i=0; i<4; i++)  pt->v[i] = vlst->mesh.point[pt->v[i]].new;
+    k++;
   }
   vlst->info.nt = nf;
 
   /* renum edges */
   for (k=1; k<=vlst->info.na; k++) {
     pa = &vlst->mesh.edge[k];
-    for (i=0; i<3; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
+    for (i=0; i<2; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
   }
-  nf = vlst->info.na;
-  k  = 0;
-  while ( ++k <= nf ) {
+  nf = vlst->info.nai;
+  k  = 1;
+  while ( k < nf ) {
     pa = &vlst->mesh.edge[k];
     if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0) ||
          (pa->v[1] > vlst->info.np || pa->v[1] == 0) ) {
-      pb = &vlst->mesh.edge[nf];
-      while ( ((pb->v[0] > vlst->info.np || pb->v[0] == 0) ||
-               (pb->v[1] > vlst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+      do {
+        pa = &vlst->mesh.edge[nf];
+        if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0 ||
+              pa->v[1] > vlst->info.np || pa->v[1] == 0) )  break;
         nf--;
-        pb = &vlst->mesh.edge[nf];
       }
+      while ( k < nf );
+      /* put nf in k */
       memcpy(&vlst->mesh.edge[k],&vlst->mesh.edge[nf],sizeof(Edge));
       nf--;
     }
+    k++;
   }
   vlst->info.na = nf;
 
@@ -120,20 +150,20 @@ int pack_3d(VLst *vlst) {
 /* mesh renumbering and packing */
 int pack_2d(VLst *vlst) {
   pTria     pt;
-  pEdge     pa,pb;
+  pEdge     pa;
   double    alpha,w[2];
   int       i,k,nf,id;
 
   /* check if compression needed */
   nf = 0;
-  for (k=1; k<=vlst->info.nt; k++) {
+  for (k=1; k<=vlst->info.nti; k++) {
     pt = &vlst->mesh.tria[k];
     if ( getMat(&vlst->sol,pt->ref,&alpha) ) {
       nf++;
-      for (i=0; i<3; i++)  vlst->mesh.point[pt->v[i]].new = pt->v[i];
+      for (i=0; i<3; i++)  vlst->mesh.point[pt->v[i]].new = 1;
     }
   }
-  if ( nf == vlst->info.nt )  return(-1);
+  if ( nf == vlst->info.nti )  return(-1);
 
   /* store permutations */
   if ( vlst->info.verb != '0' ) {
@@ -143,9 +173,9 @@ int pack_2d(VLst *vlst) {
   vlst->info.zip = 1;
 
   /* compress and renum vertices */
-  nf = vlst->info.np;
-  k  = 0;
-  while ( ++k <= nf ) {
+  nf = vlst->info.npi;
+  k  = 1;
+  while ( k < nf ) {
     if ( vlst->mesh.point[k].new == 0 ) {
       while ( (vlst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -153,55 +183,72 @@ int pack_2d(VLst *vlst) {
         memcpy(&vlst->mesh.point[0],&vlst->mesh.point[nf],sizeof(Point));
         memcpy(&vlst->mesh.point[nf],&vlst->mesh.point[k],sizeof(Point));
         memcpy(&vlst->mesh.point[k],&vlst->mesh.point[0],sizeof(Point));
-        vlst->mesh.point[k].new  = nf;
-        vlst->mesh.point[nf].new = k;
-        
+        /* swap solution too */
         if ( vlst->sol.u ) {
           memcpy(&w,&vlst->sol.u[2*(nf-1)],2*sizeof(double));
           memcpy(&vlst->sol.u[2*(nf-1)],&vlst->sol.u[2*(k-1)],2*sizeof(double));
           memcpy(&vlst->sol.u[2*(k-1)],&w,2*sizeof(double));
         }
+        vlst->mesh.point[k].new  = nf;
+        vlst->mesh.point[nf].new = k;
       }
       nf--;
     }
+    k++;
   }
   vlst->info.np = nf;
 
   /* compress and renum triangles */
-  nf = vlst->info.nt;
-  k  = 0;
-  while ( ++k <= nf ) {
+  for (k=1; k<=vlst->info.nti; k++) {
     pt = &vlst->mesh.tria[k];
-    if ( !getMat(&vlst->sol,pt->ref,&alpha) ) {
-      while ( !getMat(&vlst->sol,vlst->mesh.tria[nf].ref,&alpha) && (k < nf) )  nf --;
+    for (i=0; i<3; i++)  pt->v[i] = vlst->mesh.point[pt->v[i]].new;
+  }
+  nf = vlst->info.nti;
+  k  = 1;
+  while ( k < nf ) {
+    pt = &vlst->mesh.tria[k];
+    for (i=0; i<3; i++)
+      if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
+    if ( i < 3 ) {
+      do {
+        pt = &vlst->mesh.tria[nf];
+        for (i=0; i<3; i++)
+          if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
+        if ( i < 3 )  break;
+        nf--;
+      }
+      while ( k < nf );
       /* put nf into k */
       memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[nf],sizeof(Tria));
       nf--;
     }
-    for (i=0; i<3; i++)  pt->v[i] = vlst->mesh.point[pt->v[i]].new;
+    k++;
   }
   vlst->info.nt = nf;
 
-  /* simply renum edges */
+  /* compress and renum edges */
   for (k=1; k<=vlst->info.na; k++) {
     pa = &vlst->mesh.edge[k];
-    for (i=0; i<3; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
+    for (i=0; i<2; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
   }
-  nf = vlst->info.na;
-  k  = 0;
-  while ( ++k <= nf ) {
+  nf = vlst->info.nai;
+  k  = 1;
+  while ( k < nf ) {
     pa = &vlst->mesh.edge[k];
-    if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0) || 
+    if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0) ||
          (pa->v[1] > vlst->info.np || pa->v[1] == 0) ) {
-      pb = &vlst->mesh.edge[nf];
-      while ( ((pb->v[0] > vlst->info.np || pb->v[0] == 0) || 
-               (pb->v[1] > vlst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+      do {
+        pa = &vlst->mesh.edge[nf];
+        if ( (pa->v[0] > vlst->info.np || pa->v[0] == 0 ||
+              pa->v[1] > vlst->info.np || pa->v[1] == 0) )  break;
         nf--;
-        pb = &vlst->mesh.edge[nf];
       }
+      while ( k < nf );
+      /* put nf in k */
       memcpy(&vlst->mesh.edge[k],&vlst->mesh.edge[nf],sizeof(Edge));
       nf--;
     }
+    k++;
   }
   vlst->info.na = nf;
 
