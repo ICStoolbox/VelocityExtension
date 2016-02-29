@@ -15,7 +15,7 @@ int pack_3d(VLst *vlst) {
     pe = &vlst->mesh.tetra[k];
     if ( getMat(&vlst->sol,pe->ref,&alpha) ) {
       nf++;
-      for (i=0; i<4; i++)  vlst->mesh.point[pe->v[i]].new = 1;
+      for (i=0; i<4; i++)  vlst->mesh.point[pe->v[i]].new = pe->v[i];
     }
   }
   if ( nf == vlst->info.nei )  return(-1);
@@ -62,19 +62,15 @@ int pack_3d(VLst *vlst) {
   k  = 1;
   while ( k < nf ) {
     pe = &vlst->mesh.tetra[k];
-    for (i=0; i<4; i++)  
-      if ( pe->v[i] > vlst->info.np || pe->v[i] == 0 )  break;
-    if ( i < 4 ) {
+    if ( !getMat(&vlst->sol,pe->ref,&alpha) ) {
       do {
         pe = &vlst->mesh.tetra[nf];
-        for (i=0; i<4; i++)
-          if ( pe->v[i] > vlst->info.np || pe->v[i] == 0 )  break;
-        if ( i == 4 )  break;
+        if ( getMat(&vlst->sol,pe->ref,&alpha) )  break;
         nf --;
       }
       while ( k < nf );
       /* put nf into k */
-      memcpy(&vlst->mesh.tetra[k],&vlst->mesh.tetra[nf],sizeof(Tetra));
+      if ( k < nf )  memcpy(&vlst->mesh.tetra[k],&vlst->mesh.tetra[nf],sizeof(Tetra));
       nf--;
     }
     k++;
@@ -160,7 +156,7 @@ int pack_2d(VLst *vlst) {
     pt = &vlst->mesh.tria[k];
     if ( getMat(&vlst->sol,pt->ref,&alpha) ) {
       nf++;
-      for (i=0; i<3; i++)  vlst->mesh.point[pt->v[i]].new = 1;
+      for (i=0; i<3; i++)  vlst->mesh.point[pt->v[i]].new = pt->v[i];
     }
   }
   if ( nf == vlst->info.nti )  return(-1);
@@ -207,19 +203,15 @@ int pack_2d(VLst *vlst) {
   k  = 1;
   while ( k < nf ) {
     pt = &vlst->mesh.tria[k];
-    for (i=0; i<3; i++)
-      if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
-    if ( i < 3 ) {
+    if ( !getMat(&vlst->sol,pt->ref,&alpha) ) {
       do {
         pt = &vlst->mesh.tria[nf];
-        for (i=0; i<3; i++)
-          if ( pt->v[i] > vlst->info.np || pt->v[i] == 0 )  break;
-        if ( i < 3 )  break;
+        if ( getMat(&vlst->sol,pt->ref,&alpha) )  break;
         nf--;
       }
       while ( k < nf );
       /* put nf into k */
-      memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[nf],sizeof(Tria));
+      if ( k < nf )  memcpy(&vlst->mesh.tria[k],&vlst->mesh.tria[nf],sizeof(Tria));
       nf--;
     }
     k++;
