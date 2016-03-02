@@ -133,7 +133,7 @@ int pack_3d(VLst *vlst) {
   vlst->info.nt = nf;
 
   /* renum edges */
-  for (k=1; k<=vlst->info.na; k++) {
+  for (k=1; k<=vlst->info.nai; k++) {
     pa = &vlst->mesh.edge[k];
     for (i=0; i<2; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
   }
@@ -144,7 +144,7 @@ int pack_3d(VLst *vlst) {
     if ( (pa->v[0] > vlst->info.np) || (pa->v[1] > vlst->info.np) ) {
       do {
         pa = &vlst->mesh.edge[nf];
-        if ( (pa->v[0] > vlst->info.np) || (pa->v[1] > vlst->info.np) )  break;
+        if ( (pa->v[0] <= vlst->info.np) && (pa->v[1] <= vlst->info.np) )  break;
         nf--;
       }
       while ( k <= nf );
@@ -270,7 +270,7 @@ int pack_2d(VLst *vlst) {
   free(prm);
 
   /* compress and renum edges */
-  for (k=1; k<=vlst->info.na; k++) {
+  for (k=1; k<=vlst->info.nai; k++) {
     pa = &vlst->mesh.edge[k];
     for (i=0; i<2; i++)  pa->v[i] = vlst->mesh.point[pa->v[i]].new;
   }
@@ -281,7 +281,7 @@ int pack_2d(VLst *vlst) {
     if ( (pa->v[0] > vlst->info.np) || (pa->v[1] > vlst->info.np) ) {
       do {
         pa = &vlst->mesh.edge[nf];
-        if ( (pa->v[0] > vlst->info.np) || (pa->v[1] > vlst->info.np) )  break;
+        if ( (pa->v[0] <= vlst->info.np) && (pa->v[1] <= vlst->info.np) )  break;
         nf--;
       }
       while ( k <= nf );
