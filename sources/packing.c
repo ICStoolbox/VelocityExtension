@@ -141,10 +141,12 @@ int pack_3d(VLst *vlst) {
   k  = 1;
   while ( k <= nf ) {
     pa = &vlst->mesh.edge[k];
-    if ( (pa->v[0] > vlst->info.np) || (pa->v[1] > vlst->info.np) ) {
+    if ( (pa->v[0] == 0) || (pa->v[0] > vlst->info.np) || \
+         (pa->v[1] == 0) || (pa->v[1] > vlst->info.np) ) {
       do {
         pa = &vlst->mesh.edge[nf];
-        if ( (pa->v[0] <= vlst->info.np) && (pa->v[1] <= vlst->info.np) )  break;
+        if ( (pa->v[0] > 0) && (pa->v[0] <= vlst->info.np) && \
+             (pa->v[1] > 0) && (pa->v[1] <= vlst->info.np) )  break;
         nf--;
       }
       while ( k <= nf );
