@@ -1,4 +1,4 @@
-# velext
+# velext [![Build Status](https://travis-ci.org/ICStoolbox/VelocityExtension.svg?branch=master)](https://travis-ci.org/ICStoolbox/VelocityExtension)
 velext is a program to solve a simplified version of Helmholtz equation ```-h(x) ∆u(x) + u(x) = f(x)```. The physical interpretation of the unknown ```u(x)``` and the function ```f(x)```depends usually on what the equation models (wave propagation, quantum mechanics, etc.). Here, the program is mainly intended to extend a velocity field defined at domain boundaries to interior points, and can be considered as an extrapolation technique. Velext has many applications, one of the main is related to the level set method that requires a velocity field for which the values must be known for at least at mesh vertices that are updated in time.
 
 #### Installation
