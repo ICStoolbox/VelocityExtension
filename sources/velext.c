@@ -348,6 +348,8 @@ int main(int argc,char *argv[]) {
 	vlst.sol.mat = (Mat*)calloc(VL_MAT,sizeof(Cl));
   vlst.sol.res = VL_RES;
   vlst.sol.nit = VL_MAXIT;
+  vlst.sol.nt  = 0;
+  vlst.sol.tim = 0.0;
   vlst.sol.alpha = VL_ALPHA;
 
   /* global parameters */

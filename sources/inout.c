@@ -178,6 +178,21 @@ int loadSol(VLst *vlst) {
 			}
     }
   }
+  if ( GmfStatKwd(inm,GmfIterations) ) {
+    GmfGotoKwd(inm,GmfIterations);
+    GmfGetLin(inm,GmfTime,&vlst->sol.nt);
+  }
+  if ( GmfStatKwd(inm,GmfTime) ) {
+    GmfGotoKwd(inm,GmfTime);
+    if ( vlst->info.ver == GmfFloat ) {
+      GmfGetLin(inm,GmfTime,buf);
+      vlst->sol.tim = (double)buf[0];
+    }
+    else {
+      GmfGetLin(inm,GmfTime,bufd);
+      vlst->sol.tim = bufd[0];
+    }
+  }
   GmfCloseMesh(inm);
 
   if ( vlst->info.verb != '0' ) {
@@ -252,7 +267,7 @@ int loadChi(VLst *vlst) {
 
 int saveSol(VLst *vlst) {
   double       dbuf[GmfMaxTyp];
-  float        fbuf[GmfMaxTyp];
+  float        fbuf[GmfMaxTyp],tmpf;
   int          i,k,outm,type,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
@@ -290,6 +305,19 @@ int saveSol(VLst *vlst) {
 			  dbuf[i] = vlst->sol.u[vlst->info.dim*k+i];
       GmfSetLin(outm,GmfSolAtVertices,dbuf);
     }
+  }
+  if ( vlst->sol.nt >= 1 ) {
+    GmfSetKwd(outm,GmfIterations);
+    GmfSetLin(outm,GmfIterations,vlst->sol.nt); 
+  }
+  if ( vlst->sol.tim > 0.0 ) {
+    GmfSetKwd(outm,GmfTime);
+    if ( vlst->info.ver == GmfFloat ) {
+      tmpf = vlst->sol.tim;
+      GmfSetLin(outm,GmfTime,tmpf);
+    }
+    else
+      GmfSetLin(outm,GmfTime,vlst->sol.tim);
   }
   GmfCloseMesh(outm);
 
