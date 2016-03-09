@@ -3,22 +3,6 @@ velext is a program to solve a simplified version of Helmholtz equation ```-h(x)
 
 #### Installation
 
-##### Automatic installation
-
-1. download the zip archive of VelocityExtension or clone this repository:
-
-   ` git clone https://github.com/ICStoolbox/VelocityExtension.git `
-
-   navigate to the downloaded directory: 
-
-   ` cd VelocityExtension `
-
-2. execute the installation script, which will install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system, along with the VelocityExtension library and executable, located in ~/lib/ and ~/bin/:
-
-   ` sh install.sh `
-
-##### Manual installation
-
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
@@ -30,21 +14,17 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
    ` cd VelocityExtension `
 
-   then create build directory and create Makefile
+   then create build directory and compile the project with cmake
    ```
    mkdir build
    cd build
    cmake ..
    make
+   make install
    ```
 
-   if no errors are produced, install the binary and library
-
-   ` make install ` 
-
-
 #### Usage
-After compiling ```velext``` as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
+After compiling ```velext``` as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, velext can be called with the following syntax:
 
     usage: velext [+/-v | -h] [-a val] [-n nit] [-r res] source_file[.mesh] [-c chi_file.[sol]] [-p param_file[.elas]] [-s data_file[.sol]] [-o output_file[.sol]]
 
