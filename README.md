@@ -50,7 +50,7 @@ The options and flags are:
 #### Quickstart
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
-    cd demos/2d
+    cd demos
     velext disk.mesh -o disk.new.sol        # or equivalently:  velext disk.mesh -p disk.velext -o disk.new.sol
 
 that will produce an output that will look like:
