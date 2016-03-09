@@ -18,5 +18,8 @@ script:
   - cd build
   - cmake ..
   - make
+  - make install
+  - cd -
+  - velext demos/2d/disk.mesh -o demos/2d/disk.new.sol 
 notifications:
   email: false
