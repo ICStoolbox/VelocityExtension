@@ -55,7 +55,7 @@ int pack_3d(VLst *vlst) {
   vlst->info.np = nf;
 
   /* compress and renum tetrahedra */
-  prm = (int*)calloc(vlst->info.nei,sizeof(int));
+  prm = (int*)calloc(vlst->info.nei+1,sizeof(int));
   assert(prm);
   for (k=1; k<=vlst->info.nei; k++) {
     pe = &vlst->mesh.tetra[k];
@@ -225,7 +225,7 @@ int pack_2d(VLst *vlst) {
   vlst->info.np = nf;
 
   /* compress and renum triangles */
-  prm = (int*)calloc(vlst->info.nti,sizeof(int));
+  prm = (int*)calloc(vlst->info.nti+1,sizeof(int));
   assert(prm);
   for (k=1; k<=vlst->info.nti; k++) {
     pt = &vlst->mesh.tria[k];

@@ -355,7 +355,7 @@ int velex1_2d(VLst *vlst) {
 
   /* -- Part I: matrix assembly */
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");
-	
+
   /* allocating memory (for dylib) */
   if ( !vlst->sol.u ) {
     vlst->sol.u  = (double*)calloc(vlst->info.dim*vlst->info.np,sizeof(double));
@@ -377,7 +377,7 @@ int velex1_2d(VLst *vlst) {
     fprintf(stdout,"    Solving linear system:");  fflush(stdout);
     ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.res,&vlst->sol.nit,1);
     if ( ier <= 0 )
-      fprintf(stdout,"\n # convergence problem: %d\n",ier);
+      fprintf(stdout,"\n # convergence problem: %d (%f,%d)\n",ier,vlst->sol.res,vlst->sol.nit);
     else
       fprintf(stdout," %E in %d iterations\n",vlst->sol.res,vlst->sol.nit);
 	}

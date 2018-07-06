@@ -409,7 +409,7 @@ int main(int argc,char *argv[]) {
       return(1);
     }
   }
-  
+
   /* build adjacency table */
   if ( vlst.info.ls )
     vlst.info.dim == 2 ? hashel_2d(&vlst) : hashel_3d(&vlst);
