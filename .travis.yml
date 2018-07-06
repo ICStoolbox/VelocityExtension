@@ -18,5 +18,7 @@ script:
   - cd build
   - cmake ..
   - make
+  - make install
+  - cd -
 notifications:
   email: false

@@ -1,50 +1,30 @@
-# velext [![Build Status](https://travis-ci.org/ICStoolbox/VelocityExtension.svg?branch=master)](https://travis-ci.org/ICStoolbox/VelocityExtension)
+# velext [![Build Status](https://travis-ci.org/ISCDtoolbox/VelocityExtension.svg?branch=master)](https://travis-ci.org/ISCDtoolbox/VelocityExtension)
 velext is a program to solve a simplified version of Helmholtz equation ```-h(x) ∆u(x) + u(x) = f(x)```. The physical interpretation of the unknown ```u(x)``` and the function ```f(x)```depends usually on what the equation models (wave propagation, quantum mechanics, etc.). Here, the program is mainly intended to extend a velocity field defined at domain boundaries to interior points, and can be considered as an extrapolation technique. Velext has many applications, one of the main is related to the level set method that requires a velocity field for which the values must be known for at least at mesh vertices that are updated in time.
 
 #### Installation
 
-##### Automatic installation
-
-1. download the zip archive of VelocityExtension or clone this repository:
-
-   ` git clone https://github.com/ICStoolbox/VelocityExtension.git `
-
-   navigate to the downloaded directory: 
-
-   ` cd VelocityExtension `
-
-2. execute the installation script, which will install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system, along with the VelocityExtension library and executable, located in ~/lib/ and ~/bin/:
-
-   ` sh install.sh `
-
-##### Manual installation
-
-1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+1. you will need to install the [ISCD Commons Library](https://github.com/ISCDtoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
 2. download the zip archive of VelocityExtension or clone this repository:
 
-   ` git clone https://github.com/ICStoolbox/VelocityExtension.git `
+   ` git clone https://github.com/ISCDtoolbox/VelocityExtension.git `
 
    navigate to the downloaded directory: 
 
    ` cd VelocityExtension `
 
-   then create build directory and create Makefile
+   then create build directory and compile the project with cmake
    ```
    mkdir build
    cd build
    cmake ..
    make
+   make install
    ```
 
-   if no errors are produced, install the binary and library
-
-   ` make install ` 
-
-
 #### Usage
-After compiling ```velext``` as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
+After compiling ```velext``` as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, velext can be called with the following syntax:
 
     usage: velext [+/-v | -h] [-a val] [-n nit] [-r res] source_file[.mesh] [-c chi_file.[sol]] [-p param_file[.elas]] [-s data_file[.sol]] [-o output_file[.sol]]
 
@@ -70,7 +50,7 @@ The options and flags are:
 #### Quickstart
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
-    cd demos/2d
+    cd demos
     velext disk.mesh -o disk.new.sol        # or equivalently:  velext disk.mesh -p disk.velext -o disk.new.sol
 
 that will produce an output that will look like:
