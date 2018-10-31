@@ -12,7 +12,7 @@ static double volume(double *a,double *b,double *c,double *d) {
 
   vx  = cy*dz - cz*dy;
   vy  = cz*dx - cx*dz;
-  vz  = cx*dy - cy*dx; 
+  vz  = cx*dy - cy*dx;
   vol = fabs(bx*vx + by*vy + bz*vz) / 6.0;
 
   return(vol);
@@ -74,10 +74,10 @@ int invmat_3d(double m[9],double mi[9]) {
 /* set TGV to diagonal coefficient when Dirichlet */
 static int setTGV_3d(VLst *vlst,pCsr A) {
   pCl      pcl;
-	pTria    pt;
+  pTria    pt;
   pPoint   ppt;
   int      k,ig;
-	char     i;
+  char     i;
 
   /* Set Dirichlet's boundary for the state system */
   if ( vlst->sol.clelt & VL_ver ) {
@@ -97,12 +97,12 @@ static int setTGV_3d(VLst *vlst,pCsr A) {
           csrSet(A,ig+2,ig+2,VL_TGV);
         }
       }
-		}
-	}
-	if ( vlst->sol.clelt & VL_tri )	{
+    }
+  }
+  if ( vlst->sol.clelt & VL_tri ) {
     for (k=1; k<=vlst->info.nt; k++) {
       pt = &vlst->mesh.tria[k];
-			pcl = getCl(&vlst->sol,pt->ref,VL_tri);
+      pcl = getCl(&vlst->sol,pt->ref,VL_tri);
       if ( pcl && pcl->typ == Dirichlet ) {
         /* set value for scalar or vector field */
         if ( vlst->info.ls ) {
@@ -118,10 +118,10 @@ static int setTGV_3d(VLst *vlst,pCsr A) {
           }
         }
       }
-		}
+    }
   }
 
-	return(1);
+  return(1);
 }
 
 
@@ -133,14 +133,14 @@ static pCsr matA1_3d(VLst *vlst) {
   int      nr,nc,nbe,k,ip0,ip1,ip2,ip3,ni,nj,il,ic;
   char     i,j;
 
-	/* memory allocation (rough estimate) */
-	nr  = nc = vlst->info.np;
+  /* memory allocation (rough estimate) */
+  nr  = nc = vlst->info.np;
   nbe = 20*vlst->info.np;
   A   = csrNew(nr,nc,nbe,CS_UT+CS_SYM);
 
   /* Dp */
   Dp[0][0] = -1.0 ; Dp[1][0] = 1.0 ; Dp[2][0] = 0.0 ; Dp[3][0] = 0.0;
-  Dp[0][1] = -1.0 ; Dp[1][1] = 0.0 ; Dp[2][1] = 1.0 ; Dp[3][1] = 0.0; 
+  Dp[0][1] = -1.0 ; Dp[1][1] = 0.0 ; Dp[2][1] = 1.0 ; Dp[3][1] = 0.0;
   Dp[0][2] = -1.0 ; Dp[1][2] = 0.0 ; Dp[2][2] = 0.0 ; Dp[3][2] = 1.0;
 
   /* Fill stiffness matrix of Laplace problem */
@@ -172,20 +172,20 @@ static pCsr matA1_3d(VLst *vlst) {
     for (i=0; i<4; i++) {
       for (j=i; j<4; j++) {
         if ( j==i )
-          term0 = vol / 10.0;  
+          term0 = vol / 10.0;
         else
           term0 = vol / 20.0;
 
-        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1] + Gr[i][2]*Gr[j][2]);   
+        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1] + Gr[i][2]*Gr[j][2]);
         kij = term0 + alpha * termG;
-        ni  = pt->v[i]; 
+        ni  = pt->v[i];
         nj  = pt->v[j];
         if ( ni < nj ) {
           il = ni-1;
           ic = nj-1;
         }
         else {
-          il = nj-1; 
+          il = nj-1;
           ic = ni-1;
         }
         csrPut(A,il,ic,kij);
@@ -193,7 +193,7 @@ static pCsr matA1_3d(VLst *vlst) {
     }
   }
   setTGV_3d(vlst,A);
-	csrPack(A);
+  csrPack(A);
 
   if ( vlst->info.verb == '+' )
     fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
@@ -217,7 +217,7 @@ static pCsr matA2_3d(VLst *vlst) {
 
   /* Dp */
   Dp[0][0] = -1.0 ; Dp[1][0] = 1.0 ; Dp[2][0] = 0.0 ; Dp[3][0] = 0.0;
-  Dp[0][1] = -1.0 ; Dp[1][1] = 0.0 ; Dp[2][1] = 1.0 ; Dp[3][1] = 0.0; 
+  Dp[0][1] = -1.0 ; Dp[1][1] = 0.0 ; Dp[2][1] = 1.0 ; Dp[3][1] = 0.0;
   Dp[0][2] = -1.0 ; Dp[1][2] = 0.0 ; Dp[2][2] = 0.0 ; Dp[3][2] = 1.0;
 
   /* Fill stiffness matrix of Laplace problem */
@@ -249,11 +249,11 @@ static pCsr matA2_3d(VLst *vlst) {
     for (i=0; i<4; i++) {
       for (j=i; j<4; j++) {
         if ( j==i )
-          term0 = vol / 10.0;  
+          term0 = vol / 10.0;
         else
           term0 = vol / 20.0;
 
-        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1] + Gr[i][2]*Gr[j][2]);   
+        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1] + Gr[i][2]*Gr[j][2]);
         kij = term0 + alpha * termG;
         il  = 3*(pt->v[i]-1);
         ic  = 3*(pt->v[j]-1);
@@ -285,7 +285,7 @@ static pCsr matA2_3d(VLst *vlst) {
 
 /* build right hand side vector and set boundary conds. */
 static double *rhsF_3d(VLst *vlst) {
-	pTetra   pt;
+  pTetra   pt;
   pTria    ptt;
   pPoint   ppt;
   pCl      pcl;
@@ -308,8 +308,8 @@ static double *rhsF_3d(VLst *vlst) {
       pt = &vlst->mesh.tetra[k];
 
       /* measure of K */
-      a = &vlst->mesh.point[pt->v[0]].c[0]; 
-      b = &vlst->mesh.point[pt->v[1]].c[0]; 
+      a = &vlst->mesh.point[pt->v[0]].c[0];
+      b = &vlst->mesh.point[pt->v[1]].c[0];
       c = &vlst->mesh.point[pt->v[2]].c[0];
       d = &vlst->mesh.point[pt->v[3]].c[0];
       vol = volume(a,b,c,d) / 4.0;
@@ -330,11 +330,11 @@ static double *rhsF_3d(VLst *vlst) {
 
   /* nodal boundary conditions for interface */
   if ( vlst->sol.clelt & VL_ver ) {
-	  for (k=1; k<=vlst->info.np; k++) {
-	    ppt = &vlst->mesh.point[k];
+    for (k=1; k<=vlst->info.np; k++) {
+      ppt = &vlst->mesh.point[k];
       if ( !ppt->ref )  continue;
-			pcl = getCl(&vlst->sol,ppt->ref,VL_ver);
-	    if ( !pcl )  continue;
+      pcl = getCl(&vlst->sol,ppt->ref,VL_ver);
+      if ( !pcl )  continue;
       if ( vlst->info.ls ) {
         vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
         F[k-1] = VL_TGV * vp[0];
@@ -344,10 +344,10 @@ static double *rhsF_3d(VLst *vlst) {
         F[3*(k-1)+0] = VL_TGV * vp[0];
         F[3*(k-1)+1] = VL_TGV * vp[1];
         F[3*(k-1)+2] = VL_TGV * vp[2];
-	    }
+      }
       nc2++;
-		}
-	}
+    }
+  }
 
   /* external load along boundary triangles */
   if ( vlst->sol.clelt & VL_tri ) {
@@ -394,17 +394,17 @@ int velex1_3d(VLst *vlst) {
 
   /* -- Part I: matrix assembly */
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");
-	
+
   /* build matrix */
   A = vlst->info.ls ? matA1_3d(vlst) : matA2_3d(vlst);
   F = rhsF_3d(vlst);
 
   /* free mesh structure + boundary conditions */
   if ( vlst->info.mfree ) {
-		free(vlst->mesh.tria);
+    free(vlst->mesh.tria);
     free(vlst->mesh.tetra);
     if ( !vlst->info.zip )  free(vlst->mesh.point);
-	}
+  }
 
   /* -- Part II: Laplace problem solver */
   if ( vlst->info.verb != '0' ) {
@@ -414,16 +414,15 @@ int velex1_3d(VLst *vlst) {
       fprintf(stdout,"\n # convergence problem: %d\n",ier);
     else
       fprintf(stdout," %E in %d iterations\n",vlst->sol.res,vlst->sol.nit);
-	}
+  }
   else {
     ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.res,&vlst->sol.nit,1);
   }
 
   /* free memory */
   csrFree(A);
-	free(F);
+  free(F);
 
-  return(ier > 0);  
+  return(ier > 0);
 }
-
 

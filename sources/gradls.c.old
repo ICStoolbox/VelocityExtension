@@ -15,27 +15,27 @@ static int sys33sym(double a[6],double b[3],double r[3]) {
       m = fabs(a[i]);
   }
   if ( m < V_EPSD )  return(0);
-	
-  m = 1.0 / m;	  
+
+  m = 1.0 / m;
   for (i=0; i<6; i++)
     as[i] = a[i] * m;
-  
+
   det = as[0]*(as[3]*as[5]-as[4]*as[4]) - as[1]*(as[1]*as[5]-as[2]*as[4]) \
       + as[2]*(as[1]*as[4]-as[2]*as[3]);
   if ( fabs(det) < V_EPSD )  return(0);
-	
+
   det = 1.0/det;
-  ia[0] = (as[3]*as[5]-as[4]*as[4]); 
+  ia[0] = (as[3]*as[5]-as[4]*as[4]);
   ia[1] = - (as[1]*as[5]-as[2]*as[4]);
   ia[2] = (as[1]*as[4]-as[2]*as[3]);
   ia[3] = (as[0]*as[5]-as[2]*as[2]);
   ia[4] = -(as[0]*as[4]-as[2]*as[1]);
-  ia[5] = (as[0]*as[3]-as[1]*as[1]);  
-  
+  ia[5] = (as[0]*as[3]-as[1]*as[1]);
+
   r[0] = ia[0]*b[0] + ia[1]*b[1] + ia[2]*b[2];
   r[1] = ia[1]*b[0] + ia[3]*b[1] + ia[4]*b[2];
   r[2] = ia[2]*b[0] + ia[4]*b[1] + ia[5]*b[2];
-  
+
   r[0]*=(det*m);
   r[1]*=(det*m);
   r[2]*=(det*m);
@@ -60,15 +60,12 @@ static int sys22sym(double a[6],double b[3],double r[3]) {
 }
 
 
-
-
-
 /* Compute gradient of level set function at point ip in start, given as a P1 function
    (table of size mesh->np+1) and stores it into n[3] */
 int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
   pTetra   pt;
   pPoint   p0,p1,p2,p3;
-  double   A[6],b[3],m[9],im[9],dd; 
+  double   A[6],b[3],m[9],im[9],dd;
   int      list[LONMAX+1],np,np0,k,ilist;
   char     ier;
 
@@ -83,7 +80,7 @@ int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
   assert(ilist);
 
   for (k=1; k<=ilist; k++) {
-		np = list[k];
+    np = list[k];
     p1 = &mesh->point[np];
 
     A[0] += (p1->c[0] - p0->c[0])*(p1->c[0] - p0->c[0]);
@@ -95,7 +92,7 @@ int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
 
     b[0] += (p1->c[0] - p0->c[0])*(sol->chi[np] - sol->chi[np0]);
     b[1] += (p1->c[1] - p0->c[1])*(sol->chi[np] - sol->chi[np0]);
-    b[2] += (p1->c[2] - p0->c[2])*(sol->chi[np] - sol->chi[np0]);     
+    b[2] += (p1->c[2] - p0->c[2])*(sol->chi[np] - sol->chi[np0]);
   }
   ier = sys33sym(A,b,n);
 
@@ -108,9 +105,9 @@ int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
     p2 = &mesh->point[pt->v[2]];
     p3 = &mesh->point[pt->v[3]];
 
-    m[0] = (p1->c[0] - p0->c[0]); m[1] = (p1->c[1] - p0->c[1]); m[2] = (p1->c[2] - p0->c[2]); 
-    m[3] = (p2->c[0] - p0->c[0]); m[4] = (p2->c[1] - p0->c[1]); m[5] = (p2->c[2] - p0->c[2]); 
-    m[6] = (p3->c[0] - p0->c[0]); m[7] = (p3->c[1] - p0->c[1]); m[8] = (p3->c[2] - p0->c[2]); 
+    m[0] = (p1->c[0] - p0->c[0]); m[1] = (p1->c[1] - p0->c[1]); m[2] = (p1->c[2] - p0->c[2]);
+    m[3] = (p2->c[0] - p0->c[0]); m[4] = (p2->c[1] - p0->c[1]); m[5] = (p2->c[2] - p0->c[2]);
+    m[6] = (p3->c[0] - p0->c[0]); m[7] = (p3->c[1] - p0->c[1]); m[8] = (p3->c[2] - p0->c[2]);
 
     b[0] = (sol->chi[pt->v[1]] - sol->chi[pt->v[0]]);
     b[1] = (sol->chi[pt->v[2]] - sol->chi[pt->v[0]]);
@@ -140,7 +137,7 @@ int gradLS_3d(pMesh mesh,pSol sol,int start,char ip,double *n) {
 int gradLS_2d(pMesh mesh,pSol sol,int start,char ip,double *n) {
   pTria    pt;
   pPoint   p0,p1,p2;
-  double   A[3],b[2],m[4],im[4],dd; 
+  double   A[3],b[2],m[4],im[4],dd;
   int      list[LONMAX+1],np,np0,k,ilist;
   char     ier;
 
@@ -155,7 +152,7 @@ int gradLS_2d(pMesh mesh,pSol sol,int start,char ip,double *n) {
   assert(ilist);
 
   for (k=1; k<=ilist; k++) {
-		np = list[k];
+    np = list[k];
     p1 = &mesh->point[np];
 
     A[0] += (p1->c[0] - p0->c[0])*(p1->c[0] - p0->c[0]);

@@ -47,19 +47,19 @@ int invmat_2d(double m[4],double mi[4]) {
   det = m[0]*m[3] - m[2]*m[1];
   if ( fabs(det) < VL_EPSA )  return(0);
   det = 1.0 / det;
-	mi[0] =  m[3]*det;
-	mi[1] = -m[1]*det;
-	mi[2] = -m[2]*det;
-	mi[3] =  m[0]*det;
+  mi[0] =  m[3]*det;
+  mi[1] = -m[1]*det;
+  mi[2] = -m[2]*det;
+  mi[3] =  m[0]*det;
 
-	return(1);
+  return(1);
 }
 
 
 /* set TGV to diagonal coefficient when Dirichlet */
 static int setTGV_2d(VLst *vlst,pCsr A) {
   pCl      pcl;
-	pEdge    pa;
+  pEdge    pa;
   pPoint   ppt;
   int      k;
 
@@ -76,13 +76,13 @@ static int setTGV_2d(VLst *vlst,pCsr A) {
           csrSet(A,2*(k-1)+0,2*(k-1)+0,VL_TGV);
           csrSet(A,2*(k-1)+1,2*(k-1)+1,VL_TGV);
         }
-			}
+      }
     }
   }
-	if ( vlst->sol.clelt & VL_edg )	{
+  if ( vlst->sol.clelt & VL_edg ) {
     for (k=1; k<=vlst->info.na; k++) {
       pa = &vlst->mesh.edge[k];
-			pcl = getCl(&vlst->sol,pa->ref,VL_edg);
+      pcl = getCl(&vlst->sol,pa->ref,VL_edg);
       if ( pcl && pcl->typ == Dirichlet ) {
         /* set value for scalar or vector field */
         if ( vlst->info.ls ) {
@@ -96,10 +96,10 @@ static int setTGV_2d(VLst *vlst,pCsr A) {
           csrSet(A,2*(pa->v[1]-1)+1,2*(pa->v[1]-1)+1,VL_TGV);
         }
       }
-		}
-	}
+    }
+  }
 
-	return(1);
+  return(1);
 }
 
 
@@ -111,14 +111,14 @@ static pCsr matA1_2d(VLst *vlst) {
   int      nr,nc,nbe,k,ni,nj,il,ic;
   char     i,j;
 
-	/* memory allocation (rough estimate) */
-	nr  = nc = vlst->info.np;
+  /* memory allocation (rough estimate) */
+  nr  = nc = vlst->info.np;
   nbe = 10*vlst->info.np;
   A   = csrNew(nr,nc,nbe,CS_UT+CS_SYM);
 
   /* Dp */
   Dp[0][0] = -1.0; Dp[1][0] = 1.0; Dp[2][0] = 0.0;
-  Dp[0][1] = -1.0; Dp[1][1] = 0.0; Dp[2][1] = 1.0; 
+  Dp[0][1] = -1.0; Dp[1][1] = 0.0; Dp[2][1] = 1.0;
 
   /* Fill stiffness matrix of Laplace problem */
   for (k=1; k<=vlst->info.nt; k++) {
@@ -150,16 +150,16 @@ static pCsr matA1_2d(VLst *vlst) {
         else
           term0 = vol / 12.0;
 
-        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1]);   
+        termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1]);
         kij = term0 + alpha * termG;
-        ni  = pt->v[i]; 
+        ni  = pt->v[i];
         nj  = pt->v[j];
         if ( ni < nj ) {
           il = ni-1;
           ic = nj-1;
         }
         else {
-          il = nj-1; 
+          il = nj-1;
           ic = ni-1;
         }
         csrPut(A,il,ic,kij);
@@ -198,7 +198,7 @@ static pCsr matA2_2d(VLst *vlst) {
     p0 = &vlst->mesh.point[pt->v[0]];
     p1 = &vlst->mesh.point[pt->v[1]];
     p2 = &vlst->mesh.point[pt->v[2]];
-    
+
     m[0] = p1->c[0]-p0->c[0];  m[1] = p1->c[1]-p0->c[1];
     m[2] = p2->c[0]-p0->c[0];  m[3] = p2->c[1]-p0->c[1];
 
@@ -220,7 +220,7 @@ static pCsr matA2_2d(VLst *vlst) {
           term0 = vol / 6.0;
         else
           term0 = vol / 12.0;
-       
+
         /* termG = vol * (Gr[i][0]*Gr[j][0] + Gr[i][1]*Gr[j][1]); */
         termG = Gr[i][j];
         kij = term0 + alpha * termG;
@@ -273,9 +273,9 @@ static double *rhsF_2d(VLst *vlst) {
       pt = &vlst->mesh.tria[k];
 
       /* measure of K */
-      a = &vlst->mesh.point[pt->v[0]].c[0]; 
-      b = &vlst->mesh.point[pt->v[1]].c[0]; 
-      c = &vlst->mesh.point[pt->v[2]].c[0]; 
+      a = &vlst->mesh.point[pt->v[0]].c[0];
+      b = &vlst->mesh.point[pt->v[1]].c[0];
+      c = &vlst->mesh.point[pt->v[2]].c[0];
       area = area_2d(a,b,c) / 3.0;
       if ( vlst->info.ls ) {
         for (i=0; i<3; i++)
@@ -293,10 +293,10 @@ static double *rhsF_2d(VLst *vlst) {
 
   /* nodal boundary conditions */
   if ( vlst->sol.clelt & VL_ver ) {
-	  for (k=1; k<=vlst->info.np; k++) {
-	    ppt = &vlst->mesh.point[k];
-			pcl = getCl(&vlst->sol,ppt->ref,VL_ver);
-	    if ( !pcl )  continue;
+    for (k=1; k<=vlst->info.np; k++) {
+      ppt = &vlst->mesh.point[k];
+      pcl = getCl(&vlst->sol,ppt->ref,VL_ver);
+      if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
         if ( vlst->info.ls ) {
           vp = pcl->att == 'f' ? &vlst->sol.u[k-1] : &pcl->u[0];
@@ -306,11 +306,11 @@ static double *rhsF_2d(VLst *vlst) {
           vp = pcl->att == 'f' ? &vlst->sol.u[2*(k-1)] : &pcl->u[0];
           F[2*(k-1)+0] = VL_TGV * vp[0];
           F[2*(k-1)+1] = VL_TGV * vp[1];
-	      }
+        }
       }
       nc2++;
-		}
-	}
+    }
+  }
 
   /* external load along boundary edges */
   if ( vlst->sol.clelt & VL_edg ) {
@@ -342,7 +342,7 @@ static double *rhsF_2d(VLst *vlst) {
     fprintf(stdout,"\n");
   }
 
-	return(F);
+  return(F);
 }
 
 
@@ -368,9 +368,9 @@ int velex1_2d(VLst *vlst) {
 
   /* free mesh structure + boundary conditions */
   if ( vlst->info.mfree ) {
-		free(vlst->mesh.tria);
+    free(vlst->mesh.tria);
     if ( !vlst->info.zip )  free(vlst->mesh.point);
-	}
+  }
 
   /* -- Part II: Laplace problem solver */
   if ( vlst->info.verb != '0' ) {
@@ -380,15 +380,15 @@ int velex1_2d(VLst *vlst) {
       fprintf(stdout,"\n # convergence problem: %d (%f,%d)\n",ier,vlst->sol.res,vlst->sol.nit);
     else
       fprintf(stdout," %E in %d iterations\n",vlst->sol.res,vlst->sol.nit);
-	}
+  }
   else {
     ier = csrPrecondGrad(A,vlst->sol.u,F,&vlst->sol.res,&vlst->sol.nit,1);
   }
 
   /* free memory */
   csrFree(A);
-	free(F);
+  free(F);
 
-  return(ier > 0);  
+  return(ier > 0);
 }
 

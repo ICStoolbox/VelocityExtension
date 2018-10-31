@@ -34,7 +34,7 @@ int loadMesh(VLst *vlst) {
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
 
   vlst->info.np = GmfStatKwd(inm,GmfVertices);
-	vlst->info.na = GmfStatKwd(inm,GmfEdges);
+  vlst->info.na = GmfStatKwd(inm,GmfEdges);
   vlst->info.nt = GmfStatKwd(inm,GmfTriangles);
   vlst->info.ne = GmfStatKwd(inm,GmfTetrahedra);
 
@@ -42,10 +42,10 @@ int loadMesh(VLst *vlst) {
     if ( vlst->info.verb != '0' )  fprintf(stdout,"\n # missing data\n");
     return(0);
   }
-	vlst->info.npi = vlst->info.np;
+  vlst->info.npi = vlst->info.np;
   vlst->info.nai = vlst->info.na;
-	vlst->info.nti = vlst->info.nt;
-	vlst->info.nei = vlst->info.ne;
+  vlst->info.nti = vlst->info.nt;
+  vlst->info.nei = vlst->info.ne;
 
   /* memory alloc */
   vlst->mesh.point = (Point*)calloc(vlst->info.np+1,sizeof(Point));
@@ -105,7 +105,7 @@ int loadMesh(VLst *vlst) {
     GmfGotoKwd(inm,GmfTetrahedra);
     for (k=1; k<=vlst->info.ne; k++) {
       pt = &vlst->mesh.tetra[k];
-  		pt->mark =0;
+      pt->mark =0;
       GmfGetLin(inm,GmfTetrahedra,&pt->v[0],&pt->v[1],&pt->v[2],&pt->v[3],&pt->ref);
     }
   }
@@ -130,7 +130,7 @@ int loadSol(VLst *vlst) {
   int          i,k,dim,ver,np,inm,type,size,offset,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
-	if ( !vlst->sol.namein )  return(-1);
+  if ( !vlst->sol.namein )  return(-1);
   strcpy(data,vlst->sol.namein);
 
   /* remove .mesh extension */
@@ -164,18 +164,18 @@ int loadSol(VLst *vlst) {
   /* read sol: assume velocity if 1st field */
   GmfGotoKwd(inm,GmfSolAtVertices);
   if ( ver == GmfFloat ) {
-	  for (k=0; k<vlst->info.np; k++) {
+    for (k=0; k<vlst->info.np; k++) {
       GmfGetLin(inm,GmfSolAtVertices,&buf);
       for (i=0; i<dim; i++)
         vlst->sol.u[dim*k+i] = buf[i];
     }
   }
   else {
-	  for (k=0; k<vlst->info.np; k++) {
+    for (k=0; k<vlst->info.np; k++) {
       GmfGetLin(inm,GmfSolAtVertices,bufd);
       for (i=0; i<dim; i++) {
         vlst->sol.u[dim*k+i] = bufd[i];
-			}
+      }
     }
   }
   if ( GmfStatKwd(inm,GmfIterations) ) {
@@ -210,7 +210,7 @@ int loadChi(VLst *vlst) {
   int          k,inm,np,ver,dim,type,size,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
-	if ( !vlst->sol.namechi )  return(-1);
+  if ( !vlst->sol.namechi )  return(-1);
   strcpy(data,vlst->sol.namechi);
 
   /* remove .mesh extension */
@@ -248,7 +248,7 @@ int loadChi(VLst *vlst) {
       GmfGetLin(inm,GmfSolAtVertices,buf);
       vlst->sol.chi[k] = buf[0];
     }
-	}
+  }
   else {
     for (k=0; k<vlst->info.np; k++) {
       GmfGetLin(inm,GmfSolAtVertices,bufd);
@@ -295,20 +295,20 @@ int saveSol(VLst *vlst) {
   if ( vlst->info.ver == GmfFloat ) {
     for (k=0; k<vlst->info.np; k++) {
       for (i=0; i<vlst->info.dim; i++)
-		    fbuf[i] = vlst->sol.u[vlst->info.dim*k+i];
+        fbuf[i] = vlst->sol.u[vlst->info.dim*k+i];
       GmfSetLin(outm,GmfSolAtVertices,fbuf);
     }
-	}
+  }
   else {
     for (k=0; k<vlst->info.np; k++) {
       for (i=0; i<vlst->info.dim; i++)
-			  dbuf[i] = vlst->sol.u[vlst->info.dim*k+i];
+        dbuf[i] = vlst->sol.u[vlst->info.dim*k+i];
       GmfSetLin(outm,GmfSolAtVertices,dbuf);
     }
   }
   if ( vlst->sol.nt >= 1 ) {
     GmfSetKwd(outm,GmfIterations);
-    GmfSetLin(outm,GmfIterations,vlst->sol.nt); 
+    GmfSetLin(outm,GmfIterations,vlst->sol.nt);
   }
   if ( vlst->sol.tim > 0.0 ) {
     GmfSetKwd(outm,GmfTime);
@@ -325,3 +325,4 @@ int saveSol(VLst *vlst) {
 
   return(1);
 }
+

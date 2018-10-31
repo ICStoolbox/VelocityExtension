@@ -311,9 +311,9 @@ int pack_2d(VLst *vlst) {
 /* restore solution at initial vertices */
 int unpack(VLst *vlst) {
   pPoint  ppt;
-	double  w[3];
+  double  w[3];
   int     k,dim;
-	char    i;
+  char    i;
 
   if ( vlst->info.verb != '0' ) {
     fprintf(stdout,"    Uncompressing data: ");

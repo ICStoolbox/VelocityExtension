@@ -65,7 +65,7 @@ static void usage(char *prog) {
 static int parsar(int argc,char *argv[],VLst *vlst) {
   int      i;
   char    *ptr,*data;
-  
+
   i = 1;
   while ( i < argc ) {
     if ( (*argv[i] == '-') || (*argv[i] == '+') ) {
@@ -82,14 +82,14 @@ static int parsar(int argc,char *argv[],VLst *vlst) {
       case '?':
         usage(argv[0]);
         break;
-			case 'a':
+      case 'a':
         if ( ++i < argc && isdigit(argv[i][0]) )
           vlst->sol.alpha = atof(argv[i]);
         else {
           fprintf(stderr,"%s: missing argument option\n",argv[0]);
           usage(argv[0]);
         }
-				break;
+        break;
       case 'c':
         if ( ++i < argc ) {
           vlst->sol.namechi = argv[i];
@@ -101,7 +101,7 @@ static int parsar(int argc,char *argv[],VLst *vlst) {
           fprintf(stdout,"%s: missing parameter file\n", argv[0]);
           usage(argv[0]);
         }
-        break;  
+        break;
       case 'i':
         if ( ++i < argc ) {
           vlst->mesh.name = argv[i];
@@ -229,7 +229,7 @@ static int parsop(VLst *vlst) {
     in = fopen(data,"r");
   }
   if ( !in ) {
-    if ( vlst->info.verb != '0' )  fprintf(stdout," # parameter file %s not found\n",data); 
+    if ( vlst->info.verb != '0' )  fprintf(stdout," # parameter file %s not found\n",data);
     return(0);
   }
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
@@ -264,7 +264,7 @@ static int parsop(VLst *vlst) {
         if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") )          pcl->elt = VL_ver;
         else if ( !strcmp(buf,"edges") || !strcmp(buf,"edge") )          pcl->elt = VL_edg;
         else if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") )  pcl->elt = VL_tri;
-		  }
+      }
       vlst->sol.nbcl += ncld;
     }
     /* Neumann */
@@ -275,7 +275,7 @@ static int parsop(VLst *vlst) {
         pcl = &vlst->sol.cl[i];
         pcl->typ = Neumann;
         fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
-        
+
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
         pcl->att = tolower(pcl->att);
         if ( !strchr("fnv",pcl->att) ) {
@@ -286,7 +286,7 @@ static int parsop(VLst *vlst) {
           for (j=0; j<vlst->info.dim; j++)  fscanf(in,"%lf",&pcl->u[j]);
         }
         else if ( pcl->att == 'n' )  fscanf(in,"%lf ",&pcl->u[0]);
-        
+
         if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") )          pcl->elt = VL_ver;
         else if ( !strcmp(buf,"edges") || !strcmp(buf,"edge") )          pcl->elt = VL_edg;
         else if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") )  pcl->elt = VL_tri;
@@ -301,11 +301,11 @@ static int parsop(VLst *vlst) {
     }
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
-			npar++;
+      npar++;
       vlst->sol.cltyp |= Gravity;
       for (j=0; j<vlst->info.dim; j++)
         fscanf(in,"%lf",&vlst->sol.gr[j]);
-    }    
+    }
     else if ( !strcmp(data,"domain") ) {
       npar++;
       fscanf(in,"%d",&ncld);
@@ -344,8 +344,8 @@ int main(int argc,char *argv[]) {
   /* init structure */
   memset(&vlst.mesh,0,sizeof(Mesh));
   memset(&vlst.sol,0,sizeof(Sol));
-	vlst.sol.cl  = (Cl*)calloc(VL_CL,sizeof(Cl));
-	vlst.sol.mat = (Mat*)calloc(VL_MAT,sizeof(Cl));
+  vlst.sol.cl  = (Cl*)calloc(VL_CL,sizeof(Cl));
+  vlst.sol.mat = (Mat*)calloc(VL_MAT,sizeof(Cl));
   vlst.sol.res = VL_RES;
   vlst.sol.nit = VL_MAXIT;
   vlst.sol.nt  = 0;
@@ -354,12 +354,12 @@ int main(int argc,char *argv[]) {
 
   /* global parameters */
   vlst.info.dim    = 3;
-	vlst.info.ver    = 1;
+  vlst.info.ver    = 1;
   vlst.info.verb   = '1';
   vlst.info.zip    = 0;
   vlst.info.ls     = 0;
   vlst.info.mfree  = 1;
-  
+
   /* parse command line */
   if ( !parsar(argc,argv,&vlst) )  return(1);
 
@@ -373,7 +373,7 @@ int main(int argc,char *argv[]) {
 
   /* loading mesh */
   ier = loadMesh(&vlst);
-	if ( ier <=0 )  return(1);
+  if ( ier <=0 )  return(1);
 
   /* parse parameters in file */
   if ( !parsop(&vlst) )  return(1);
@@ -398,7 +398,7 @@ int main(int argc,char *argv[]) {
     if ( ier <= 0 ) {
       if ( vlst.info.verb != '0' )  fprintf(stdout," # missing or wrong file %s",vlst.sol.namechi);
       return(1);
-    } 
+    }
   }
 
   /* packing mesh if needed */
@@ -428,9 +428,9 @@ int main(int argc,char *argv[]) {
 
   chrono(OFF,&vlst.info.ctim[2]);
   if ( vlst.info.verb != '0' ) {
-		printim(vlst.info.ctim[2].gdif,stim);
+    printim(vlst.info.ctim[2].gdif,stim);
     fprintf(stdout," ** COMPLETED: %s\n\n",stim);
-	}
+  }
 
   /* save file */
   if ( vlst.info.verb != '0' )  fprintf(stdout," - WRITING DATA\n");
@@ -444,7 +444,7 @@ int main(int argc,char *argv[]) {
   }
 
   ier = saveSol(&vlst);
-	if ( !ier )   return(1);
+  if ( !ier )   return(1);
   chrono(OFF,&vlst.info.ctim[3]);
   if ( vlst.info.verb != '0' ) {
     printim(vlst.info.ctim[3].gdif,stim);
@@ -452,10 +452,10 @@ int main(int argc,char *argv[]) {
   }
 
   /* free mem */
-	free(vlst.sol.u);
+  free(vlst.sol.u);
   if ( vlst.sol.chi )  free(vlst.sol.chi);
-	free(vlst.sol.cl);
-	free(vlst.sol.mat);
+  free(vlst.sol.cl);
+  free(vlst.sol.mat);
 
   chrono(OFF,&vlst.info.ctim[0]);
   if ( vlst.info.verb != '0' ) {
@@ -465,7 +465,4 @@ int main(int argc,char *argv[]) {
 
   return(0);
 }
-
-
-
 

@@ -113,7 +113,7 @@ static int hcode_2d(Mesh *mesh,Htab *ht,int a,int b,int k,int i) {
     pc = &ht->cell[pc->nxt];
   } while (1);
 
-  return(0);  
+  return(0);
 }
 
 
@@ -160,7 +160,7 @@ int hashel_3d(VLst *vlst) {
     pt = &vlst->mesh.tetra[k];
     for (i=0; i<4; i++) {
       ppt = &vlst->mesh.point[pt->v[i]];
-      if ( !ppt->s )  ppt->s = k; 
+      if ( !ppt->s )  ppt->s = k;
     }
   }
   free(ht.cell);
@@ -214,11 +214,12 @@ int hashel_2d(VLst *vlst) {
     pt = &vlst->mesh.tria[k];
     for (i=0; i<3; i++) {
       ppt = &vlst->mesh.point[pt->v[i]];
-      if ( !ppt->s )  ppt->s = k; 
+      if ( !ppt->s )  ppt->s = k;
     }
   }
 
   if ( vlst->info.verb != '0' )  fprintf(stdout," %d updated\n",na);
 
-  return(1);  
+  return(1);
 }
+

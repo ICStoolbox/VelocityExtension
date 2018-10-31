@@ -3,7 +3,7 @@
 
 
 VLst *VL_init(int dim,int ver,char typ,char mfree) {
-	VLst   *vlst;
+  VLst   *vlst;
 
   /* default values */
   vlst = (VLst*)calloc(1,sizeof(VLst));
@@ -33,14 +33,15 @@ VLst *VL_init(int dim,int ver,char typ,char mfree) {
   return(vlst);
 }
 
+
 /* free global data structure */
 int VL_stop(VLst *vlst) {
-	char   stim[32];
+  char   stim[32];
 
-	/* release memory */
+  /* release memory */
   free(vlst->sol.u);
-	free(vlst->sol.cl);
-	free(vlst->sol.mat);
+  free(vlst->sol.cl);
+  free(vlst->sol.mat);
 
   chrono(OFF,&vlst->info.ctim[0]);
   if ( vlst->info.verb != '0' ) {
@@ -48,14 +49,14 @@ int VL_stop(VLst *vlst) {
     fprintf(stdout,"\n  Cumulative time: %s sec.\n",stim);
   }
 
-	return(1);
+  return(1);
 }
 
 
 /* set params (facultative):  verb= '-|0|+',  zip = 0 / 1 */
 void VL_setPar(VLst *vlst,char verb,int zip) {
-	vlst->info.verb = verb;
-	vlst->info.zip  = zip;
+  vlst->info.verb = verb;
+  vlst->info.zip  = zip;
 }
 
 
@@ -63,7 +64,7 @@ void VL_setPar(VLst *vlst,char verb,int zip) {
   typ= Dirichlet, Load
   ref= integer
   att= char 'v', 'f', 'n'
-  elt= enum LS_ver, LS_edg, LS_tri, LS_tet */
+  elt= enum VL_ver, VL_edg, VL_tri, VL_tet */
 int VL_setBC(VLst *vlst,int typ,int ref,char att,int elt,double *u) {
   Cl    *pcl;
   int    i;
@@ -106,15 +107,15 @@ int VL_setBC(VLst *vlst,int typ,int ref,char att,int elt,double *u) {
 
 
 /* specify elasticity Lame coefficients */
-int LS_setLame(VLst *vlst,int ref,double alpha) {
+int VL_setLame(VLst *vlst,int ref,double alpha) {
   Mat    *pm;
 
   if ( vlst->sol.nmat == VL_MAT-1 )  return(0);
-  
+
   pm = &vlst->sol.mat[vlst->sol.nmat];
   pm->ref    = ref;
   pm->alpha = alpha;
-  
+
   vlst->sol.nmat++;
 
   return(1);
@@ -123,7 +124,7 @@ int LS_setLame(VLst *vlst,int ref,double alpha) {
 
 /* Construct solution */
 int VL_newSol(VLst *vlst) {
-  
+
   vlst->sol.u = (double*)calloc(vlst->info.dim*vlst->info.np,sizeof(double));
   assert(vlst->sol.u);
   return(1);
@@ -139,16 +140,16 @@ int VL_addSol(VLst *vlst,int ip,double *u) {
 
 /* construct mesh */
 int VL_mesh(VLst *vlst,int np,int na,int nt,int ne) {
-	if ( !vlst )  return(0);
+  if ( !vlst )  return(0);
 
-	vlst->info.np = np;
-	vlst->info.na = na;
-	vlst->info.nt = nt;
-	vlst->info.ne = ne;
+  vlst->info.np = np;
+  vlst->info.na = na;
+  vlst->info.nt = nt;
+  vlst->info.ne = ne;
 
   /* bound on number of nodes */
   vlst->mesh.point = (pPoint)calloc(vlst->info.np+1,sizeof(Point));
-	assert(vlst->mesh.point);
+  assert(vlst->mesh.point);
 
   if ( vlst->info.na ) {
     vlst->mesh.edge  = (pEdge)calloc(vlst->info.na+1,sizeof(Edge));
@@ -166,77 +167,82 @@ int VL_mesh(VLst *vlst,int np,int na,int nt,int ne) {
   return(1);
 }
 
+
 /* insert mesh elements into structure */
 int VL_addVer(VLst *vlst,int idx,double *c,int ref) {
   pPoint   ppt;
-	int      i;
+  int      i;
 
-	assert(idx > 0 && idx <= vlst->info.np);
-	ppt = &vlst->mesh.point[idx];
-	for (i=0; i<vlst->info.dim; i++)
+  assert(idx > 0 && idx <= vlst->info.np);
+  ppt = &vlst->mesh.point[idx];
+  for (i=0; i<vlst->info.dim; i++)
     ppt->c[i] = c[i];
-	ppt->ref = ref;
+  ppt->ref = ref;
 
-	return(1);
+  return(1);
 }
 
-int LS_addEdg(VLst *vlst,int idx,int *v,int ref) {
-	pEdge   pe;
-	
-	assert(idx > 0 && idx <= vlst->info.na);
-	pe = &vlst->mesh.edge[idx];
-	memcpy(&pe->v[0],&v[0],2*sizeof(int));
+
+int VL_addEdg(VLst *vlst,int idx,int *v,int ref) {
+  pEdge   pe;
+
+  assert(idx > 0 && idx <= vlst->info.na);
+  pe = &vlst->mesh.edge[idx];
+  memcpy(&pe->v[0],&v[0],2*sizeof(int));
   pe->ref = ref;
 
-	return(1);
+  return(1);
 }
 
-int LS_addTri(VLst *vlst,int idx,int *v,int ref) {
-	pTria   pt;
 
-	assert(idx > 0 && idx <= vlst->info.nt);
-	pt = &vlst->mesh.tria[idx];
-	memcpy(&pt->v[0],&v[0],3*sizeof(int));
+int VL_addTri(VLst *vlst,int idx,int *v,int ref) {
+  pTria   pt;
+
+  assert(idx > 0 && idx <= vlst->info.nt);
+  pt = &vlst->mesh.tria[idx];
+  memcpy(&pt->v[0],&v[0],3*sizeof(int));
   pt->ref = ref;
 
-	return(1);
+  return(1);
 }
 
-int LS_addTet(VLst *vlst,int idx,int *v,int ref) {
-	pTetra   pt;
 
-	assert(idx > 0 && idx <= vlst->info.ne);
-	pt = &vlst->mesh.tetra[idx];
-	memcpy(&pt->v[0],&v[0],4*sizeof(int));
+int VL_addTet(VLst *vlst,int idx,int *v,int ref) {
+  pTetra   pt;
+
+  assert(idx > 0 && idx <= vlst->info.ne);
+  pt = &vlst->mesh.tetra[idx];
+  memcpy(&pt->v[0],&v[0],4*sizeof(int));
   pt->ref = ref;
 
-	return(1);
+  return(1);
 }
 
 
-/* initialize solution vector or Dirichlet conditions 
+/* initialize solution vector or Dirichlet conditions
    return: 1 if completion
            0 if no vertex array allocated
           -1 if previous data stored in struct. */
-int LS_iniSol(VLst *vlst,double *u) {
+int VL_iniSol(VLst *vlst,double *u) {
   if ( !vlst->info.np )  return(0);
 
   /* no data already allocated */
   if ( !vlst->sol.u ) {
     vlst->sol.u  = (double*)u;
-		return(1);
+    return(1);
   }
-	/* resolve potential conflict */
-	else {
-		free(vlst->sol.u);
+  /* resolve potential conflict */
+  else {
+    free(vlst->sol.u);
     vlst->sol.u  = (double*)u;
-		return(-1);
-	}
+    return(-1);
+  }
 }
 
+
 /* return pointer to solution (Warning: starts at address 0) */
-double *LS_getSol(VLst *vlst) {
-	return(vlst->sol.u);
+double *VL_getSol(VLst *vlst) {
+  return(vlst->sol.u);
 }
 
 
@@ -246,17 +252,18 @@ int VL_velext(VLst *vlst) {
 
   for (i=0; i<vlst->sol.nbcl; i++) {
     pcl = &vlst->sol.cl[i];
-		vlst->sol.cltyp |= pcl->typ;
+    vlst->sol.cltyp |= pcl->typ;
     vlst->sol.clelt |= pcl->elt;
   }
 
   if ( vlst->info.dim == 2)
-		ier = velex1_2d(vlst);
-	else
-		ier = velex1_3d(vlst);
+    ier = velex1_2d(vlst);
+  else
+    ier = velex1_3d(vlst);
   if ( ier < 1 )  return(ier);
 
 //if ( !sctove(&mesh,&sol))   return(1);
 
-	return(ier);	
+  return(ier);
 }
+

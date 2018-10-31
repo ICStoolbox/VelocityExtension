@@ -2,7 +2,7 @@
 
 
 /* find all vertices connected to P
-   in:  start : tetrahedron containing p 
+   in:  start : tetrahedron containing p
         ip    : index of p in start
         list  : dynamic list structure (allocated outside)
    out: list  : list of vertices */
@@ -25,7 +25,7 @@ int boulep_3d(pMesh mesh,int start,int ip,int *list) {
   llist[1] = 4*start + ip;
 
   /* store first 3 vertices */
-	list[0] = nump;
+  list[0] = nump;
   for (j=0; j<4; j++) {
     if ( j != ip ) {
       ilist++;
@@ -146,7 +146,4 @@ int boulep_2d(pMesh mesh,int start,int ip,int *list) {
 
   return(ilist);
 }
-
-
-
 
