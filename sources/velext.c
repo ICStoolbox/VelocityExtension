@@ -241,7 +241,7 @@ static int parsop(VLst *vlst) {
     /* scan line */
     ret = fscanf(in,"%s",data);
     if ( !ret || feof(in) )  break;
-    for (i=0; i<strlen(data); i++) data[i] = tolower(data[i]);
+    for (i=0; i<(int)strlen(data); i++) data[i] = tolower(data[i]);
 
     /* check for condition type */
     if ( !strcmp(data,"dirichlet")) {
@@ -252,7 +252,7 @@ static int parsop(VLst *vlst) {
         pcl->typ = Dirichlet;
         fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
 
-        for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
+        for (j=0; j<(int)strlen(buf); j++)  buf[j] = tolower(buf[j]);
         pcl->att = tolower(pcl->att);
         if ( !strchr("fv",pcl->att) ) {
           if ( vlst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
@@ -276,7 +276,7 @@ static int parsop(VLst *vlst) {
         pcl->typ = Neumann;
         fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
 
-        for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
+        for (j=0; j<(int)strlen(buf); j++)  buf[j] = tolower(buf[j]);
         pcl->att = tolower(pcl->att);
         if ( !strchr("fnv",pcl->att) ) {
           if ( vlst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);

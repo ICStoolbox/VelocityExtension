@@ -181,7 +181,7 @@ static pCsr matA2_2d(VLst *vlst) {
   pCsr     A;
   pTria    pt;
   pPoint   p0,p1,p2;
-  double   m[4],im[4],Gr[3][3],alpha,cof,vol,kij,term0,termG;
+  double   m[4],Gr[3][3],alpha,cof,vol,kij,term0,termG;
   int      nr,nc,nbe,k,il,ic;
   char     i,j;
 
@@ -256,7 +256,7 @@ static double *rhsF_2d(VLst *vlst) {
   pTria    pt;
   pCl      pcl;
   double  *F,*vp,*a,*b,*c,area;
-  int      i,k,ig,nc1,nc2,nc3;
+  int      i,k,nc1,nc2,nc3;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
   if ( vlst->info.ls )
@@ -351,7 +351,6 @@ int velex1_2d(VLst *vlst) {
   pCsr     A;
   double  *F;
   int      ier;
-  char     stim[32];
 
   /* -- Part I: matrix assembly */
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");

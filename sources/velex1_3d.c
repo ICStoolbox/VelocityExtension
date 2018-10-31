@@ -20,6 +20,7 @@ static double volume(double *a,double *b,double *c,double *d) {
 
 
 /* compute 3d triangle area */
+/*
 static double area_3d(double *a,double *b,double *c) {
   double    aa,bb,cc,ux,uy,uz,vx,vy,vz,aire;
 
@@ -33,6 +34,7 @@ static double area_3d(double *a,double *b,double *c) {
 
   return(aire /2.0);
 }
+*/
 
 
 /* invert 3x3 non-symmetric matrix */
@@ -130,7 +132,7 @@ static pCsr matA1_3d(VLst *vlst) {
   pTetra   pt;
   pPoint   p0,p1,p2,p3;
   double   Dp[4][3],m[9],im[9],Gr[4][3],alpha,vol,kij,term0,termG;
-  int      nr,nc,nbe,k,ip0,ip1,ip2,ip3,ni,nj,il,ic;
+  int      nr,nc,nbe,k,ni,nj,il,ic;
   char     i,j;
 
   /* memory allocation (rough estimate) */
@@ -207,7 +209,7 @@ static pCsr matA2_3d(VLst *vlst) {
   pTetra   pt;
   pPoint   p0,p1,p2,p3;
   double   Dp[4][3],m[9],im[9],Gr[4][3],alpha,vol,kij,term0,termG;
-  int      nr,nc,nbe,k,ip0,ip1,ip2,ip3,il,ic;
+  int      nr,nc,nbe,k,il,ic;
   char     i,j;
 
   /* memory allocation (rough estimate) */
@@ -290,7 +292,7 @@ static double *rhsF_3d(VLst *vlst) {
   pPoint   ppt;
   pCl      pcl;
   double  *F,*vp,*a,*b,*c,*d,vol;
-  int      k,il,nc1,nc2,nc3;
+  int      k,nc1,nc2,nc3;
   char     i;
 
   if ( vlst->info.verb == '+' )  fprintf(stdout,"     boundary conditions: ");
@@ -388,9 +390,8 @@ static double *rhsF_3d(VLst *vlst) {
 /* solve Helmholz */
 int velex1_3d(VLst *vlst) {
   pCsr     A;
-  double  *F,err;
-  int      nit,ier;
-  char     stim[32];
+  double  *F;
+  int      ier;
 
   /* -- Part I: matrix assembly */
   if ( vlst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");

@@ -2,7 +2,7 @@
 #include "vl_calls.h"
 
 
-VLst *VL_init(int dim,int ver,char typ,char mfree) {
+VLst *VL_init(int dim,int ver,char mfree) {
   VLst   *vlst;
 
   /* default values */

@@ -127,7 +127,7 @@ int loadMesh(VLst *vlst) {
 int loadSol(VLst *vlst) {
   double       bufd[GmfMaxTyp];
   float        buf[GmfMaxTyp];
-  int          i,k,dim,ver,np,inm,type,size,offset,typtab[GmfMaxTyp];
+  int          i,k,dim,ver,np,inm,type,offset,typtab[GmfMaxTyp];
   char        *ptr,data[128];
 
   if ( !vlst->sol.namein )  return(-1);

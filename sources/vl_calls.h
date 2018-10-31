@@ -11,7 +11,7 @@ typedef struct _VLst VLst;
 
 
 /* prototypes */
-VLst   *VL_init(int dim, int ver, char typ,char mfree);
+VLst   *VL_init(int dim, int ver,char mfree);
 int     VL_stop(VLst *vlst);
 void    VL_setPar(VLst *vlst,char verb,int zip);
 int     VL_setBC(VLst *vlst,int typ,int ref,char att,int elt,double *u);

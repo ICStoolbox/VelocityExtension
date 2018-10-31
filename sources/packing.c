@@ -8,7 +8,7 @@ int pack_3d(VLst *vlst) {
   pEdge     pa;
   pPoint    ppt;
   double    alpha,w[3];
-  int      *prm,i,k,nf,id;
+  int      *prm,i,k,nf;
 
   /* check if compression needed */
   nf  = 0;
@@ -178,7 +178,7 @@ int pack_2d(VLst *vlst) {
   pEdge     pa;
   pPoint    ppt;
   double    alpha,w[2];
-  int      *prm,i,k,nf,id;
+  int      *prm,i,k,nf;
 
   /* check if compression needed */
   nf = 0;
@@ -313,7 +313,6 @@ int unpack(VLst *vlst) {
   pPoint  ppt;
   double  w[3];
   int     k,dim;
-  char    i;
 
   if ( vlst->info.verb != '0' ) {
     fprintf(stdout,"    Uncompressing data: ");
